@@ -62,9 +62,9 @@ aitUnstakeButton.addEventListener('click', () => {
 });
 
 const nativeStakingContract = '0x124526079cA384E2A2E78Cc03bF4d475f6b93173'; // Native Staking Contract
-const aitContractAddress = '0x0281e0e9Df9920E994051fC3798fd1565F6d28BF'; // AIT Contract Address
-const aitStakingContract = '0x665EE57E60a73B4bd470E7A3bf21f7Bba3c52287'; // AIT Staking Contract
-const claimAitContract = '0x1359aF4Efc1A70199061FbD92f9ffC781f9aB95c'; // Claim AIT Token
+const aitContractAddress = '0x0281e0e9Df9920E994051fC3798fd1565F6d28BF'; // LEAF Contract Address
+const aitStakingContract = '0x665EE57E60a73B4bd470E7A3bf21f7Bba3c52287'; // LEAF Staking Contract
+const claimAitContract = '0x1359aF4Efc1A70199061FbD92f9ffC781f9aB95c'; // Claim LEAF Token
 const nativeContractABI = [
     {
         "inputs": [],
