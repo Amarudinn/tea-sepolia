@@ -1336,356 +1336,782 @@ async function stake() {
 
     if (!amount || isNaN(amount) || Number(amount) <= 0) {
         await Swal.fire({
-            title: 'Input Tidak Valid',
-            text: 'Masukkan jumlah stake yang valid',
+            title: 'Invalid Input',
+            text: 'Enter a valid stake amount',
             icon: 'error',
-            confirmButtonText: 'Tutup'
+            confirmButtonText: 'Close'
         });
         return;
     }
 
+    const { isConfirmed } = await Swal.fire({
+        title: 'Confirm Stake',
+        html: `You are about to stake <b>${amount} TEA</b>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Cancel'
+    });
+
+
+    if (!isConfirmed) return;
+
     try {
         const stakedAmount = web3.utils.toWei(amount, 'ether');
+
+        const loadingAlert = Swal.fire({
+            title: 'Processing Stake...',
+            html: 'Please confirm stake transaction in MetaMask',
+            didOpen: () => {
+                Swal.showLoading();
+            },
+            allowOutsideClick: false
+        });
 
         const txPromise = nativeContract.methods.stake()
             .send({ from: accounts[0], value: stakedAmount });
 
-        let alertProses;
         txPromise.on('transactionHash', (hash) => {
-            alertProses = Swal.fire({
-                title: 'Stake Diproses',
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-                html: `
-                    <div>
-                        <p>Transaksi sedang diproses...</p>
-                        <p>
-                            <a href="https://sepolia.tea.xyz/tx/${hash}" target="_blank"
-                               style="color:#2196F3;text-decoration:underline;word-break:break-all;">
-                                Lihat di Tea Explorer
-                            </a>
-                        </p>
-                    </div>
-                `,
-                showConfirmButton: false,
-                allowOutsideClick: false
+            loadingAlert.then(() => {
+                Swal.fire({
+                    title: 'Transaction Processed',
+                    html: `
+                        <div>
+                            <p>Stake being processed on the blockchain...</p>
+                            <p>
+                                <a href="https://sepolia.tea.xyz/tx/${hash}" target="_blank"
+                                   style="color:#2196F3;text-decoration:underline;">
+                                    View in Explorer
+                                </a>
+                            </p>
+                        </div>
+                    `,
+                    icon: 'info',
+                    showConfirmButton: false,
+                    allowOutsideClick: false
+                });
             });
         });
 
         const receipt = await txPromise;
-
-        if (alertProses) {
-            Swal.close();
-        }
-
+        
         await Swal.fire({
-            title: 'Stake Berhasil!',
+            title: 'Stake Successful!',
             html: `
                 <div>
-                    <p>Transaksi berhasil dikonfirmasi.</p>
+                    <p>Staked  ${amount} TEA successfully!</p>
                     <p>
                         <a href="https://sepolia.tea.xyz/tx/${receipt.transactionHash}" target="_blank"
                            style="color:#2196F3;text-decoration:underline;">
-                            Lihat di Tea Explorer
+                            View Stake Transaction
                         </a>
                     </p>
                 </div>
             `,
-            icon: 'success',
-            confirmButtonText: 'Tutup'
+            icon: 'success'
         });
 
         updateAccountBalance();
-        updateStakedAmount();
-        updateRewardAmount();
-        updateTotalStakers();
-        updateTotalStaking();
+		updateStakedAmount();
+		updateRewardAmount();
+		updateTotalStaking();
 
     } catch (error) {
         await Swal.fire({
-            title: 'Stake Berhasil!',
-            html: `
-                <div>
-                    <p>Transaksi berhasil dikonfirmasi.</p>
-                    <p>
-                        <a href="https://sepolia.tea.xyz/tx/${receipt.transactionHash}" target="_blank"
-                           style="color:#2196F3;text-decoration:underline;">
-                            Lihat di Tea Explorer
-                        </a>
-                    </p>
-                </div>
-            `,
-            icon: 'success',
-            confirmButtonText: 'Tutup'
+            title: 'Transaction Failed',
+            text: error.message.includes('User denied')
+                ? 'You cancel the transaction'
+                : 'An error occurred during the staking process',
+            icon: 'error'
         });
     }
 }
 
-async function approve(amount) {
-    let approvalSwal;
+async function approve(amount, tokenContract, spenderAddress) {
     try {
-        const approvedAmount = web3.utils.toWei(amount);
+        const approvedAmount = web3.utils.toWei(amount.toString());
         
-        // Show loading alert for approval
-        approvalSwal = Swal.fire({
-            title: 'Approving...',
-            html: 'Please confirm the approval in your MetaMask',
-            allowOutsideClick: false,
+        const approveAlert = Swal.fire({
+            title: 'Authorization Needed',
+            html: 'Please approve the token spending in MetaMask',
             didOpen: () => {
                 Swal.showLoading();
             },
-            willClose: () => {
-                Swal.hideLoading();
-            }
+            allowOutsideClick: false,
+            showConfirmButton: false
         });
-
-        // Trigger MetaMask approval
-        const approvalTx = await aitContract.methods.approve(aitStakingContract, approvedAmount)
-            .send({ from: accounts[0] })
-            .on('transactionHash', (hash) => {
-                approvalSwal.update({
-                    html: `Approval pending... <a href="https://etherscan.io/tx/${hash}" target="_blank">View on Etherscan</a>`
-                });
-            });
-
-        await approvalSwal.close();
-
-        Swal.fire({
-            position: "top-center",
+        
+        const approvalTx = await tokenContract.methods
+            .approve(spenderAddress, approvedAmount)
+            .send({ from: accounts[0] });
+        
+        await approveAlert.close();
+        
+        await Swal.fire({
+            position: "top-end",
             icon: "success",
-            title: "Approval successful!",
+            title: "Token approved",
             showConfirmButton: false,
             timer: 1500
         });
-        return true;
+        
+        return approvalTx;
     } catch (error) {
-        if (approvalSwal) {
-            await approvalSwal.close();
+        await Swal.close();
+        
+        let errorMsg = "Approval failed";
+        if (error.message.includes('User denied')) {
+            errorMsg = "You rejected the approval in MetaMask";
         }
         
-        let errorMsg = "Transaction rejected";
-        if (error.code === 4001) {
-            errorMsg = "You rejected the transaction in MetaMask";
-        } else if (error.message.includes("reverted")) {
-            errorMsg = "Transaction reverted - check contract requirements";
-        }
-
-        Swal.fire({
-            position: "top-center",
+        await Swal.fire({
+            position: "center",
             icon: "error",
-            title: "Approval failed",
-            text: errorMsg,
+            title: errorMsg,
             showConfirmButton: true,
         });
+        
         console.error('Approval error:', error);
-        return false;
+        throw error;
     }
 }
 
 async function aitStake() {
     const amount = document.getElementById('aitStakeAmount').value;
-    
+
     if (!amount || isNaN(amount) || Number(amount) <= 0) {
-        Swal.fire({
-            position: "top-center",
-            icon: "warning",
-            title: "Invalid amount",
-            text: "Please enter a valid staking amount",
-            showConfirmButton: true,
+        await Swal.fire({
+            title: 'Invalid Input',
+            text: 'Please enter a valid stake amount',
+            icon: 'error',
+            confirmButtonText: 'Close'
         });
         return;
     }
 
-    let stakeSwal;
-    try {
-        // Show initial loading alert
-        stakeSwal = Swal.fire({
-            title: 'Preparing Staking...',
-            html: 'Checking approval status',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            },
-            willClose: () => {
-                Swal.hideLoading();
-            }
-        });
+    const { isConfirmed } = await Swal.fire({
+        title: 'Confirm Stake',
+        html: `You are about to stake <b>${amount} LEAF</b>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Cancel'
+    });
 
-        // First get approval
-        const isApproved = await approve(amount);
-        if (!isApproved) return;
+    if (!isConfirmed) return;
+
+    let approvalDone = false;
+    let approvalTxHash = null;
+
+    try {
+        const approveAlert = Swal.fire({
+            title: 'Approving Tokens...',
+            html: 'Please approve token spending in MetaMask',
+            didOpen: () => Swal.showLoading(),
+            allowOutsideClick: false
+        });
 
         const aitStakedAmount = web3.utils.toWei(amount);
-        
-        stakeSwal.update({
-            title: 'Staking...',
-            html: 'Please confirm the staking transaction in MetaMask'
-        });
-
-        const stakeTx = await aitStaking.methods.stake(aitStakedAmount)
+        approvalTxHash = await aitContract.methods
+            .approve(aitStaking.options.address, aitStakedAmount)
             .send({ from: accounts[0] })
-            .on('transactionHash', (hash) => {
-                stakeSwal.update({
-                    html: `Staking in progress... <a href="https://etherscan.io/tx/${hash}" target="_blank">View on Etherscan</a>`
-                });
-            })
-            .on('receipt', (receipt) => {
-                console.log('Staking receipt:', receipt);
+            .then(tx => {
+                approvalDone = true;
+                return tx.transactionHash;
             });
 
-        await stakeSwal.close();
-
-        Swal.fire({
-            position: "top-center",
-            icon: "success",
-            title: "Staked successfully!",
-            html: `Your ${amount} tokens have been staked`,
-            showConfirmButton: false,
-            timer: 2500
+        await approveAlert.close();
+        await Swal.fire({
+            title: 'Approval Successful',
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false
         });
 
-        // Update UI
-        await Promise.all([
-            aitUpdateAccountBalance(),
-            aitUpdateStakedAmount(),
-            aitUpdateRewardAmount(),
-            updateTotalTokenStaking()
-        ]);
+        const stakeAlert = Swal.fire({
+            title: 'Processing Stake...',
+            html: 'Please confirm stake transaction in MetaMask',
+            didOpen: () => Swal.showLoading(),
+            allowOutsideClick: false
+        });
+
+        const stakeTx = await aitStaking.methods
+            .stake(aitStakedAmount)
+            .send({ from: accounts[0] });
+
+        await stakeAlert.close();
+
+        await Swal.fire({
+            title: 'Stake Successful!',
+            html: `
+                <div>
+                    <p>Staked ${amount} LEAF successfully</p>
+                    <p>
+                        <a href="https://sepolia.tea.xyz/tx/${stakeTx.transactionHash}" 
+                           target="_blank" style="color:#2196F3;">
+                            View Stake Transaction
+                        </a>
+                    </p>
+                </div>
+            `,
+            icon: 'success'
+        });
+
+        updateBalances();
 
     } catch (error) {
-        if (stakeSwal) {
-            await stakeSwal.close();
-        }
-        
-        let errorMsg = "Staking failed";
-        if (error.code === 4001) {
-            errorMsg = "You rejected the staking transaction";
-        } else if (error.message.includes("revert")) {
-            errorMsg = "Staking failed - contract reverted";
-        } else if (error.message.includes("insufficient allowance")) {
-            errorMsg = "Insufficient allowance - please approve more tokens";
+        Swal.close();
+
+        let errorMessage = 'Transaction failed';
+        let txLinks = '';
+
+        if (approvalDone) {
+            errorMessage = 'Stake failed after approval';
+            if (error.receipt?.transactionHash) {
+                txLinks += `
+                    <p>Approval TX: 
+                        <a href="https://sepolia.tea.xyz/tx/${approvalTxHash}" 
+                           target="_blank" style="color:#2196F3;">
+                            View
+                        </a>
+                    </p>
+                    <p>Failed Stake TX: 
+                        <a href="https://sepolia.tea.xyz/tx/${error.receipt.transactionHash}" 
+                           target="_blank" style="color:#2196F3;">
+                            View
+                        </a>
+                    </p>
+                `;
+            }
+        } else {
+            errorMessage = error.message.includes('User denied') 
+                ? 'Approval rejected in MetaMask' 
+                : 'Approval failed';
+            
+            if (approvalTxHash) {
+                txLinks += `
+                    <p>Failed Approval TX: 
+                        <a href="https://sepolia.tea.xyz/tx/${approvalTxHash}" 
+                           target="_blank" style="color:#2196F3;">
+                            View
+                        </a>
+                    </p>
+                `;
+            }
         }
 
-        Swal.fire({
-            position: "top-center",
-            icon: "error",
-            title: "Staking Error",
-            text: errorMsg,
-            showConfirmButton: true,
+        await Swal.fire({
+            title: errorMessage,
+            html: `
+                <div>
+                    <p>${error.message || 'Unknown error occurred'}</p>
+                    ${txLinks}
+                </div>
+            `,
+            icon: 'error'
         });
-        console.error('Staking error:', error);
+
+        console.error('Error details:', error);
     }
+}
+
+async function updateBalances() {
+    await Promise.all([
+        aitUpdateAccountBalance(),
+        aitUpdateStakedAmount(),
+        aitUpdateRewardAmount(),
+        updateTotalTokenStaking()
+    ]);
 }
 
 async function unstakePartial() {
     const amount = document.getElementById('unstakeAmount').value;
-    const unstakedAmount = web3.utils.toWei(amount);
+
+    if (!amount || isNaN(amount) || Number(amount) <= 0) {
+        await Swal.fire({
+            title: 'Invalid Input',
+            text: 'Please enter a valid stake amount',
+            icon: 'error',
+            confirmButtonText: 'Close'
+        });
+        return;
+    }
 
     try {
-        const unstakeTx = await nativeContract.methods.unstakePartial(unstakedAmount).send({ from: accounts[0] });
-        Swal.fire({
-            position: "top-center",
-            icon: "success",
-            title: "Unstake successful",
-            showConfirmButton: false,
-            timer: 2000
+        const stakedBalanceWei = await nativeContract.methods.getStakedAmount(accounts[0]).call();
+        const stakedBalance = web3.utils.fromWei(stakedBalanceWei);
+        
+        if (Number(amount) > Number(stakedBalance)) {
+            await Swal.fire({
+                title: 'Insufficient Balance',
+                html: `
+                    <div>
+                        <p>The unstake amount exceeds your available balance</p>
+                        <p>Balance available: <b>${stakedBalance} TEA</b></p>
+                    </div>
+                `,
+                icon: 'error',
+                confirmButtonText: 'Close'
+            });
+            return;
+        }
+
+        const { isConfirmed } = await Swal.fire({
+            title: 'Confirm Unstake',
+            html: `
+                <div>
+                    <p>You will unstake: <b>${amount} TEA</b></p>
+                    <p>From the total balance: <b>${stakedBalance} TEA</b></p>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Confirm',
+            cancelButtonText: 'Cencel',
         });
-        console.log('Partial unstake successful');
-        updateAccountBalance();
-        updateStakedAmount();
-        updateRewardAmount();
-        updateTotalStakers();
-        updateTotalStaking();
+
+        if (!isConfirmed) return;
+
+        const loadingAlert = Swal.fire({
+            title: 'Processing Unstake...',
+            html: 'Please confirm the transaction in MetaMask',
+            didOpen: () => Swal.showLoading(),
+            allowOutsideClick: false,
+            showConfirmButton: false
+        });
+
+        const unstakedAmount = web3.utils.toWei(amount);
+        const unstakeTx = await nativeContract.methods
+            .unstakePartial(unstakedAmount)
+            .send({ from: accounts[0] });
+
+        await loadingAlert.close();
+
+        await Swal.fire({
+            title: 'Unstake Successful!',
+            html: `
+                <div>
+                    <p>You have successfully unstake <b>${amount} TEA</b></p>
+                    <p>Remaining balance: <b>${(stakedBalance - amount).toFixed(2)} TEA</b></p>
+                    <p>
+                        <a href="https://sepolia.tea.xyz/tx/${unstakeTx.transactionHash}" 
+                           target="_blank"
+                           style="color:#2196F3;text-decoration:underline;">
+                            View Unstake Transactions
+                        </a>
+                    </p>
+                </div>
+            `,
+            icon: 'success',
+            confirmButtonText: 'Close'
+        });
+
+        await updateUnstakeData();
+
     } catch (error) {
-        Swal.fire({
-            position: "top-center",
-            icon: "error",
-            title: "Failed to unstake",
-            showConfirmButton: false,
-            timer: 2000
+        await Swal.close();
+        
+        let errorMessage = 'Failed to unstake';
+        let txLink = '';
+        
+        if (error.receipt?.transactionHash) {
+            txLink = `
+                <p>
+                    <a href="https://sepolia.tea.xyz/tx/${error.receipt.transactionHash}"
+                       target="_blank"
+                       style="color:#2196F3;text-decoration:underline;">
+                        View Failed Transactions
+                    </a>
+                </p>
+            `;
+        }
+        
+        if (error.message.includes('User denied')) {
+            errorMessage = 'You canceled the transaction in MetaMask';
+        } else if (error.message.includes('exceeds staked amount')) {
+            errorMessage = 'Unstake amount exceeds balance';
+        }
+
+        await Swal.fire({
+            title: errorMessage,
+            html: `
+                <div>
+                    <p>${error.message || 'There is an error'}</p>
+                    ${txLink}
+                </div>
+            `,
+            icon: 'error',
+            confirmButtonText: 'Close'
         });
-        console.error('Failed to unstake:', error);
+
+        console.error('Error unstake:', {
+            error,
+            inputAmount: amount,
+            account: accounts[0],
+            timestamp: new Date().toISOString()
+        });
     }
 }
 
+async function updateUnstakeData() {
+    await Promise.all([
+        updateAccountBalance(),
+        updateStakedAmount(),
+        updateRewardAmount(),
+        updateTotalStaking()
+    ]);
+}
+
 async function aitUnstakePartial() {
+
     const amount = document.getElementById('aitUnstakeAmount').value;
-    const aitUnstakeAmount = web3.utils.toWei(amount);
+
+    if (!amount || isNaN(amount) || Number(amount) <= 0) {
+        await Swal.fire({
+            title: 'Invalid Input',
+            text: 'Please enter a valid stake amount',
+            icon: 'error',
+            confirmButtonText: 'Close'
+        });
+        return;
+    }
 
     try {
-        const unstakeTx = await aitStaking.methods.unstakePartial(aitUnstakeAmount).send({ from: accounts[0] });
-        Swal.fire({
-            position: "top-center",
-            icon: "success",
-            title: "Unstake successful",
-            showConfirmButton: false,
-            timer: 2000
+        const stakedBalanceWei = await aitStaking.methods.getStakedAmount(accounts[0]).call();
+        const stakedBalance = web3.utils.fromWei(stakedBalanceWei);
+        
+        if (Number(amount) > Number(stakedBalance)) {
+            await Swal.fire({
+                title: 'Insufficient Balance',
+                html: `
+                    <div>
+                        <p>The unstake amount exceeds your available balance</p>
+                        <p>Balance available: <b>${stakedBalance} LEAF</b></p>
+                    </div>
+                `,
+                icon: 'error',
+                confirmButtonText: 'Close'
+            });
+            return;
+        }
+
+        const { isConfirmed } = await Swal.fire({
+            title: 'Confirm Unstake',
+            html: `
+                <div>
+                    <p>You will unstake: <b>${amount} LEAF</b></p>
+                    <p>From the total balance: <b>${stakedBalance} LEAF</b></p>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Confirm',
+            cancelButtonText: 'Cencel',
         });
-        console.log('Partial unstake successful');
-        aitUpdateAccountBalance();
-        aitUpdateStakedAmount();
-        aitUpdateRewardAmount();
-        updateTotalTokenStaking();
+
+        if (!isConfirmed) return;
+
+        const loadingAlert = Swal.fire({
+            title: 'Processing Unstake...',
+            html: 'Please confirm the transaction in MetaMask',
+            didOpen: () => Swal.showLoading(),
+            allowOutsideClick: false,
+            showConfirmButton: false
+        });
+
+        const unstakedAmount = web3.utils.toWei(amount);
+        const unstakeTx = await aitStaking.methods
+            .unstakePartial(unstakedAmount)
+            .send({ from: accounts[0] });
+
+        await loadingAlert.close();
+
+        await Swal.fire({
+            title: 'Unstake Successful!',
+            html: `
+                <div>
+                    <p>You have successfully unstake <b>${amount} LEAF</b></p>
+                    <p>Remaining balance: <b>${(stakedBalance - amount).toFixed(0)} LEAF</b></p>
+                    <p>
+                        <a href="https://sepolia.tea.xyz/tx/${unstakeTx.transactionHash}" 
+                           target="_blank"
+                           style="color:#2196F3;text-decoration:underline;">
+                            View Unstake Transactions
+                        </a>
+                    </p>
+                </div>
+            `,
+            icon: 'success',
+            confirmButtonText: 'Close'
+        });
+
+        await updateAitUnstakeData();
+
     } catch (error) {
-        Swal.fire({
-            position: "top-center",
-            icon: "error",
-            title: "Failed to unstake",
-            showConfirmButton: false,
-            timer: 2000
+        await Swal.close();
+        
+        let errorMessage = 'Failed to unstake';
+        let txLink = '';
+        
+        if (error.receipt?.transactionHash) {
+            txLink = `
+                <p>
+                    <a href="https://sepolia.tea.xyz/tx/${error.receipt.transactionHash}"
+                       target="_blank"
+                       style="color:#2196F3;text-decoration:underline;">
+                        View Failed Transactions
+                    </a>
+                </p>
+            `;
+        }
+        
+        if (error.message.includes('User denied')) {
+            errorMessage = 'You canceled the transaction in MetaMask';
+        } else if (error.message.includes('exceeds staked amount')) {
+            errorMessage = 'Unstake amount exceeds balance';
+        }
+
+        await Swal.fire({
+            title: errorMessage,
+            html: `
+                <div>
+                    <p>${error.message || 'There is an error'}</p>
+                    ${txLink}
+                </div>
+            `,
+            icon: 'error',
+            confirmButtonText: 'Close'
         });
-        console.error('Failed to unstake:', error);
+
+        console.error('Error unstake:', {
+            error,
+            inputAmount: amount,
+            account: accounts[0],
+            timestamp: new Date().toISOString()
+        });
     }
+}
+
+async function updateAitUnstakeData() {
+    await Promise.all([
+        aitUpdateAccountBalance(),
+        aitUpdateStakedAmount(),
+        aitUpdateRewardAmount(),
+        updateTotalTokenStaking()
+    ]);
 }
 
 async function claimReward() {
     try {
-        const claimTx = await nativeContract.methods.claimReward().send({ from: accounts[0] });
-        Swal.fire({
-            position: "top-center",
-            icon: "success",
-            title: "Reward claimed",
-            showConfirmButton: false,
-            timer: 2000
+        const pendingRewardWei = await nativeContract.methods.getPendingReward(accounts[0]).call();
+        const pendingReward = web3.utils.fromWei(pendingRewardWei);
+
+        if (Number(pendingReward) <= 0) {
+            await Swal.fire({
+                title: 'No Rewards',
+                text: 'You do not have any rewards to claim at this time.',
+                icon: 'info',
+                confirmButtonText: 'Close'
+            });
+            return;
+        }
+
+        const { isConfirmed } = await Swal.fire({
+            title: 'Confirm Claim Reward',
+            html: `You will claim a reward of <b>${Number(pendingReward).toFixed(4)} TEA</b>?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Confirm',
+            cancelButtonText: 'Close'
         });
-        console.log('Reward claimed');
-        updateAccountBalance();
-        updateRewardAmount();
+
+        if (!isConfirmed) return;
+
+        const loadingAlert = Swal.fire({
+            title: 'Processing Claim Reward...',
+            html: 'Please confirm the transaction in MetaMask',
+            didOpen: () => Swal.showLoading(),
+            allowOutsideClick: false,
+            showConfirmButton: false
+        });
+
+        const claimTx = await nativeContract.methods
+            .claimReward()
+            .send({ from: accounts[0] });
+
+        await loadingAlert.close();
+        
+        await Swal.fire({
+            title: 'Claim Reward Successful!',
+            html: `
+                <div>
+                    <p>You have successfully claimed <b>${Number(pendingReward).toFixed(4)} TEA</b></p>
+                    <p>
+                        <a href="https://sepolia.tea.xyz/tx/${claimTx.transactionHash}" 
+                           target="_blank"
+                           style="color:#2196F3;text-decoration:underline;">
+                            View Transactions
+                        </a>
+                    </p>
+                </div>
+            `,
+            icon: 'success',
+            confirmButtonText: 'Close'
+        });
+
+        await Promise.all([
+            updateAccountBalance(),
+            updateRewardAmount()
+        ]);
+
     } catch (error) {
-        Swal.fire({
-            position: "top-center",
-            icon: "error",
-            title: "Failed to claim reward",
-            showConfirmButton: false,
-            timer: 2000
+        await Swal.close();
+        
+        let errorMessage = 'Failed to claim reward';
+        let txLink = '';
+        
+        if (error.receipt?.transactionHash) {
+            txLink = `
+                <p>
+                    <a href="https://sepolia.tea.xyz/tx/${error.receipt.transactionHash}"
+                       target="_blank"
+                       style="color:#2196F3;text-decoration:underline;">
+                        View Failed Transactions
+                    </a>
+                </p>
+            `;
+        }
+        
+        if (error.message.includes('User denied')) {
+            errorMessage = 'You canceled the transaction in MetaMask';
+        } else if (error.message.includes('No reward to claim')) {
+            errorMessage = 'There are no rewards to claim';
+        }
+
+        await Swal.fire({
+            title: errorMessage,
+            html: `
+                <div>
+                    <p>${error.message || 'There is an error'}</p>
+                    ${txLink}
+                </div>
+            `,
+            icon: 'error',
+            confirmButtonText: 'Close'
         });
-        console.error('Failed to claim reward:', error);
+
+        console.error('Error claim reward:', {
+            error,
+            account: accounts[0],
+            timestamp: new Date().toISOString()
+        });
     }
 }
 
 async function aitClaimReward() {
     try {
-        const claimTx = await aitStaking.methods.claimReward().send({ from: accounts[0] });
-        Swal.fire({
-            position: "top-center",
-            icon: "success",
-            title: "Reward claimed",
-            showConfirmButton: false,
-            timer: 2000
+        const pendingRewardWei = await aitStaking.methods.getPendingReward(accounts[0]).call();
+        const pendingReward = web3.utils.fromWei(pendingRewardWei);
+
+        if (Number(pendingReward) <= 0) {
+            await Swal.fire({
+                title: 'No Rewards',
+                text: 'You do not have any rewards to claim at this time.',
+                icon: 'info',
+                confirmButtonText: 'Close'
+            });
+            return;
+        }
+
+        const { isConfirmed } = await Swal.fire({
+            title: 'Confirm Claim Reward',
+            html: `You will claim a reward of <b>${Number(pendingReward).toFixed(4)} TEA</b>?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Confirm',
+            cancelButtonText: 'Close'
         });
-        console.log('Reward claimed');
-        aitUpdateAccountBalance();
-        aitUpdateRewardAmount();
+
+        if (!isConfirmed) return;
+
+        const loadingAlert = Swal.fire({
+            title: 'Processing Claim Reward...',
+            html: 'Please confirm the transaction in MetaMask',
+            didOpen: () => Swal.showLoading(),
+            allowOutsideClick: false,
+            showConfirmButton: false
+        });
+
+        const claimTx = await nativeContract.methods
+            .claimReward()
+            .send({ from: accounts[0] });
+
+        await loadingAlert.close();
+        
+        await Swal.fire({
+            title: 'Claim Reward Successful!',
+            html: `
+                <div>
+                    <p>You have successfully claimed <b>${Number(pendingReward).toFixed(4)} TEA</b></p>
+                    <p>
+                        <a href="https://sepolia.tea.xyz/tx/${claimTx.transactionHash}" 
+                           target="_blank"
+                           style="color:#2196F3;text-decoration:underline;">
+                            View Transactions
+                        </a>
+                    </p>
+                </div>
+            `,
+            icon: 'success',
+            confirmButtonText: 'Close'
+        });
+
+        await Promise.all([
+            updateAccountBalance(),
+            updateRewardAmount()
+        ]);
+
     } catch (error) {
-        Swal.fire({
-            position: "top-center",
-            icon: "error",
-            title: "Failed to claim reward",
-            showConfirmButton: false,
-            timer: 2000
+        await Swal.close();
+        
+        let errorMessage = 'Failed to claim reward';
+        let txLink = '';
+        
+        if (error.receipt?.transactionHash) {
+            txLink = `
+                <p>
+                    <a href="https://sepolia.tea.xyz/tx/${error.receipt.transactionHash}"
+                       target="_blank"
+                       style="color:#2196F3;text-decoration:underline;">
+                        View Failed Transactions
+                    </a>
+                </p>
+            `;
+        }
+        
+        if (error.message.includes('User denied')) {
+            errorMessage = 'You canceled the transaction in MetaMask';
+        } else if (error.message.includes('No reward to claim')) {
+            errorMessage = 'There are no rewards to claim';
+        }
+
+        await Swal.fire({
+            title: errorMessage,
+            html: `
+                <div>
+                    <p>${error.message || 'There is an error'}</p>
+                    ${txLink}
+                </div>
+            `,
+            icon: 'error',
+            confirmButtonText: 'Close'
         });
-        console.error('Failed to claim reward:', error);
+
+        console.error('Error claim reward:', {
+            error,
+            account: accounts[0],
+            timestamp: new Date().toISOString()
+        });
     }
 }
 
@@ -1760,26 +2186,25 @@ async function claimTokens() {
 
             if (hoursSinceLastClaim < 24) {
                 showWarning(
-                    `Claim Harian Terbatas`,
-                    `Anda sudah melakukan claim hari ini. Silakan coba lagi setelah ${Math.ceil(24 - hoursSinceLastClaim)} jam`
+                    `Limit Daily Claim`,
+                    `You have already made a claim today. Please try again after ${Math.ceil(24 - hoursSinceLastClaim)} hours`
                 );
                 return;
             }
         }
 
         const { isConfirmed } = await Swal.fire({
-            title: "Konfirmasi Claim",
-            html: `Anda akan mengirim <b class="eth-value">1 ETH</b> untuk mendapatkan <b>100 token</b>`,
+            title: "Confirm Claim",
+            html: `You will send <b class="eth-value">1 TEA</b> to get <b>100 LEAF</b>`,
             icon: "info",
             showCancelButton: true,
-            confirmButtonText: "Ya, Claim Sekarang",
-            cancelButtonText: "Batal",
-            reverseButtons: true
+            confirmButtonText: "Yes, Claim Now",
+            cancelButtonText: "Close",
         });
 
         if (!isConfirmed) return;
 
-        showLoading("Memproses transaksi...");
+        showLoading("Processing transactions...");
 
         const valueInWei = web3.utils.toWei('1', 'ether');
 
@@ -1787,7 +2212,7 @@ async function claimTokens() {
             .estimateGas({ from: userAddress, value: valueInWei })
             .catch(err => {
                 console.error("Gas estimate error:", err);
-                throw new Error("Gagal mengestimasi gas. Coba lagi nanti.");
+                throw new Error("Failed to estimate gas. Please try again later.");
             });
 
         const receipt = await contract.methods.claimTokens()
@@ -1808,30 +2233,51 @@ async function claimTokens() {
             });
 
         if (receipt.status) {
-            showSuccessWithTxLink(
-                "Claim Berhasil!",
-                "Token telah berhasil dikirim ke alamat Anda",
-                `<a href="https://sepolia.tea.xyz/tx/${transactionHash}" target="_blank" class="tx-link">Tea Explorer</a>`
-            );
+            await Swal.fire({
+                title: 'Claim Successful!',
+                html: `
+                    <div>
+                        <p>The token has been successfully sent to your address.</b></p>
+                        <p>
+                            <a href="https://sepolia.tea.xyz/tx/${transactionHash}" 
+                               target="_blank"
+                               style="color:#2196F3;text-decoration:underline;">
+                                View Transactions
+                            </a>
+                        </p>
+                    </div>
+                `,
+                icon: 'success',
+                confirmButtonText: 'Close'
+            });
 
             document.getElementById('claimButton').disabled = true;
             await checkClaimStatus();
         } else {
-            showError("Transaksi gagal diproses di blockchain");
+            showError("Transaction failed to process on blockchain");
         }
+
+        updateClaimTokens();
 
     } catch (error) {
         console.error("Error detail:", error);
 
         if (transactionHash) {
             showWarning(
-                "Transaksi Diproses",
-                `Transaksi Anda sedang diproses blockchain. <a href="https://sepolia.tea.xyz/tx/${transactionHash}" target="_blank" class="tx-link">Tea Explorer</a>`
+                "Transaction Processed",
+                `Your transaction is being processed on the blockchain. <a href="https://sepolia.tea.xyz/tx/${transactionHash}" target="_blank" class="tx-link">View Transaction</a>`
             );
         } else {
             handleClaimError(error);
         }
     }
+}
+
+async function updateClaimTokens() {
+    await Promise.all([
+        updateAccountBalance(),
+        aitUpdateAccountBalance()
+    ]);
 }
 
 async function checkClaimStatus() {
@@ -1877,10 +2323,10 @@ function showSuccessWithTxLink(title, message, txHash) {
         html: `${message}<br><br>
                <small>Transaction Hash:</small><br>
                <a href="https://sepolia.tea.xyz/tx/${txHash}" target="_blank" class="tx-link">
-                   ${txHash}
+                   View Transaction
                </a>`,
         showConfirmButton: true,
-        confirmButtonText: "Tutup"
+        confirmButtonText: "Close"
     });
 }
 
@@ -1891,7 +2337,7 @@ function showWarning(title, message) {
         title: title,
         html: message,
         showConfirmButton: true,
-        confirmButtonText: "Mengerti"
+        confirmButtonText: "Understand"
     });
 }
 
@@ -1901,31 +2347,31 @@ function showError(message) {
         icon: "error",
         title: message,
         showConfirmButton: true,
-        confirmButtonText: "Mengerti"
+        confirmButtonText: "Understand"
     });
 }
 
 function handleClaimError(error) {
-    let errorMessage = 'Gagal melakukan claim';
+    let errorMessage = 'Failed to make a claim';
 
     if (error.code === 4001) {
-        errorMessage = "Anda membatalkan transaksi";
+        errorMessage = "You cancel the transaction";
     } else if (error.message.includes('User denied transaction')) {
-        errorMessage = "Transaksi ditolak oleh pengguna";
+        errorMessage = "Transaction rejected by user";
     } else if (error.message.includes('insufficient funds')) {
-        errorMessage = "Saldo ETH tidak mencukupi";
+        errorMessage = "ETH balance is insufficient";
     } else if (error.message.includes('revert')) {
         if (error.message.includes('Claim not available yet')) {
-            errorMessage = "Anda sudah melakukan claim hari ini";
+            errorMessage = "You have made a claim today";
         } else if (error.message.includes('Incorrect fee amount')) {
-            errorMessage = "Jumlah ETH yang dikirim tidak tepat";
+            errorMessage = "The amount of ETH sent is incorrect";
         } else if (error.message.includes('Not enough tokens')) {
-            errorMessage = "Token habis, tidak bisa diklaim saat ini";
+            errorMessage = "Token is out, cannot be claimed at this time";
         }
     } else if (error.message.includes('gas')) {
-        errorMessage = "Penyesuaian gas diperlukan. Coba lagi";
+        errorMessage = "Gas adjustment is required. Try again.";
     } else if (error.message.includes('Transaction was not mined')) {
-        errorMessage = "Transaksi sedang diproses. Silakan cek wallet Anda";
+        errorMessage = "Transaction is being processed. Please check your wallet.";
     }
 
     showError(errorMessage);
@@ -1940,7 +2386,7 @@ document.getElementById('claimButton').addEventListener('click', async () => {
         await claimTokens();
     } catch (error) {
         console.error("Global error handler:", error);
-        showError("Terjadi kesalahan sistem. Silakan refresh halaman");
+        showError("A system error has occurred. Please refresh the page.");
     }
 });
 
