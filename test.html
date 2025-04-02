@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Check-in dengan Smart Contract</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .stats-container {
+            margin-bottom: 30px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .stat-label {
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+
+        .stat-value {
+            color: #2c3e50;
+        }
+
+        .checkin-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+
+        .checkin-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .checkin-btn:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .countdown {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        .success-message {
+            color: #27ae60;
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .wallet-section {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .connect-btn {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="wallet-section">
+            <button id="connectWallet" class="connect-btn">Connect Wallet</button>
+            <div id="walletAddress" style="margin-top: 10px; font-size: 12px;"></div>
+        </div>
+
+        <h1>Daily Check-in</h1>
+
+        <div class="stats-container">
+            <div class="stat-item">
+                <span class="stat-label">Tokens Earned:</span>
+                <span class="stat-value" id="tokensEarned">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Current Streak:</span>
+                <span class="stat-value" id="currentStreak">0 days</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Last Check-in:</span>
+                <span class="stat-value" id="lastCheckInTime">Never</span>
+            </div>
+        </div>
+
+        <button id="checkinBtn" class="checkin-btn" disabled>CHECK IN NOW</button>
+        <div class="countdown" id="nextCheckInAvailable"></div>
+        <div class="success-message" id="successMessage">Check-in successful! 1 token has been added to your account.
+        </div>
+        <div class="error-message" id="errorMessage"></div>
+    </div>
+
+    <!-- Gunakan ethers.js untuk berinteraksi dengan smart contract -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
+    <script>
+        // Konfigurasi Kontrak (Ganti dengan alamat kontrak Anda)
+        const contractConfig = {
+            checkInContractAddress: "0x8007d797600bac46a850C0D59B94aCF44458813B", // Alamat kontrak DailyCheckIn
+            tokenContractAddress: "0x66eDf774AF0a06E973B771aD2a25fD604b48F886",  // Alamat kontrak token ERC20
+            checkInABI: [
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_tokenAddress",
+				"type": "address"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "rewardAmount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "currentStreak",
+				"type": "uint256"
+			}
+		],
+		"name": "CheckedIn",
+		"type": "event"
+	},
+	{
+		"inputs": [],
+		"name": "checkIn",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "fundContract",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "previousOwner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "OwnershipTransferred",
+		"type": "event"
+	},
+	{
+		"inputs": [],
+		"name": "renounceOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_tokenAddress",
+				"type": "address"
+			}
+		],
+		"name": "setTokenAddress",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "newTokenAddress",
+				"type": "address"
+			}
+		],
+		"name": "TokenAddressUpdated",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "TokensWithdrawn",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "withdrawTokens",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			}
+		],
+		"name": "canCheckIn",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "CHECK_IN_INTERVAL",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			}
+		],
+		"name": "getUserCheckInCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			}
+		],
+		"name": "getUserStats",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "currentStreak",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "longestStreak",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalCheckInsForUser",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "lastCheckInTime",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalTokensEarned",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "canUserCheckIn",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "rewardToken",
+		"outputs": [
+			{
+				"internalType": "contract IERC20",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			}
+		],
+		"name": "timeUntilNextCheckIn",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "TOKEN_REWARD",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "totalCheckIns",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "totalUsers",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "userStats",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "currentStreak",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "longestStreak",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalCheckIns",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "lastCheckInTime",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalTokensEarned",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+],
+            tokenABI: [
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "spender",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "Approval",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_spender",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_value",
+				"type": "uint256"
+			}
+		],
+		"name": "approve",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "success",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_value",
+				"type": "uint256"
+			}
+		],
+		"name": "burn",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "success",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "Burn",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_value",
+				"type": "uint256"
+			}
+		],
+		"name": "mint",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "success",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_value",
+				"type": "uint256"
+			}
+		],
+		"name": "transfer",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "success",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "Transfer",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_from",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_value",
+				"type": "uint256"
+			}
+		],
+		"name": "transferFrom",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "success",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "allowance",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "balanceOf",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "decimals",
+		"outputs": [
+			{
+				"internalType": "uint8",
+				"name": "",
+				"type": "uint8"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "name",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "symbol",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "totalSupply",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+]
+        };
+
+        // Variabel global
+        let web3;
+        let checkInContract;
+        let tokenContract;
+        let userAddress;
+
+        // DOM elements
+        const connectWalletBtn = document.getElementById('connectWallet');
+        const walletAddressEl = document.getElementById('walletAddress');
+        const tokensEarnedEl = document.getElementById('tokensEarned');
+        const currentStreakEl = document.getElementById('currentStreak');
+        const lastCheckInTimeEl = document.getElementById('lastCheckInTime');
+        const checkinBtn = document.getElementById('checkinBtn');
+        const nextCheckInAvailableEl = document.getElementById('nextCheckInAvailable');
+        const successMessageEl = document.getElementById('successMessage');
+        const errorMessageEl = document.getElementById('errorMessage');
+
+        // Inisialisasi Web3
+        async function initWeb3() {
+            // Cek jika MetaMask terinstall
+            if (window.ethereum) {
+                try {
+                    // Request akses akun
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    
+                    // Buat instance Web3
+                    web3 = new Web3(window.ethereum);
+                    
+                    // Inisialisasi kontrak
+                    initContracts();
+                    
+                    // Dapatkan alamat pengguna
+                    await getAccount();
+                    
+                    // Set event listeners
+                    setupEventListeners();
+                    
+                } catch (error) {
+                    console.error("Error initializing Web3:", error);
+                    errorMessageEl.textContent = 'Error: ' + error.message;
+                }
+            } else {
+                errorMessageEl.textContent = 'Please install MetaMask to use this app!';
+                connectWalletBtn.disabled = true;
+            }
+        }
+
+        // Inisialisasi kontrak
+        function initContracts() {
+            checkInContract = new web3.eth.Contract(
+                contractConfig.checkInABI,
+                contractConfig.checkInContractAddress
+            );
+            
+            tokenContract = new web3.eth.Contract(
+                contractConfig.tokenABI,
+                contractConfig.tokenContractAddress
+            );
+        }
+
+        // Dapatkan akun pengguna
+        async function getAccount() {
+            const accounts = await web3.eth.getAccounts();
+            if (accounts.length > 0) {
+                userAddress = accounts[0];
+                walletAddressEl.textContent = `Connected: ${userAddress.substring(0, 6)}...${userAddress.substring(38)}`;
+                connectWalletBtn.textContent = 'Connected';
+                connectWalletBtn.disabled = true;
+                
+                // Muat data kontrak
+                loadContractData();
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Handle account changes
+            window.ethereum.on('accountsChanged', (accounts) => {
+                if (accounts.length > 0) {
+                    userAddress = accounts[0];
+                    walletAddressEl.textContent = `Connected: ${userAddress.substring(0, 6)}...${userAddress.substring(38)}`;
+                    loadContractData();
+                } else {
+                    resetUI();
+                }
+            });
+            
+            // Handle chain changes
+            window.ethereum.on('chainChanged', () => {
+                window.location.reload();
+            });
+            
+            // Tombol check-in
+            checkinBtn.addEventListener('click', handleCheckIn);
+        }
+
+        // Muat data dari kontrak
+        async function loadContractData() {
+            try {
+                // Dapatkan data dari kontrak
+                const stats = await checkInContract.methods.getUserStats(userAddress).call();
+                const tokensEarned = await tokenContract.methods.balanceOf(userAddress).call();
+                const canCheckIn = await checkInContract.methods.canCheckIn(userAddress).call();
+                
+                // Update UI
+                tokensEarnedEl.textContent = web3.utils.fromWei(tokensEarned, 'ether');
+                currentStreakEl.textContent = `${stats.currentStreak} day${stats.currentStreak != 1 ? 's' : ''}`;
+                
+                if (stats.lastCheckInTime > 0) {
+                    const lastCheckInDate = new Date(stats.lastCheckInTime * 1000);
+                    lastCheckInTimeEl.textContent = lastCheckInDate.toLocaleString();
+                } else {
+                    lastCheckInTimeEl.textContent = 'Never';
+                }
+                
+                checkinBtn.disabled = !canCheckIn;
+                
+                // Jika sudah check-in, tampilkan countdown
+                if (!canCheckIn && stats.lastCheckInTime > 0) {
+                    updateCountdown(stats.lastCheckInTime);
+                }
+                
+                errorMessageEl.textContent = '';
+            } catch (error) {
+                console.error("Error loading contract data:", error);
+                errorMessageEl.textContent = 'Error loading data: ' + error.message;
+            }
+        }
+
+        // Update countdown timer
+        function updateCountdown(lastCheckInTime) {
+            const lastCheckIn = new Date(lastCheckInTime * 1000);
+            const nextCheckIn = new Date(lastCheckIn.getTime() + 2 * 60 * 1000); // 2 menit
+            
+            function update() {
+                const now = new Date();
+                const diff = nextCheckIn - now;
+                
+                if (diff <= 0) {
+                    checkinBtn.disabled = false;
+                    nextCheckInAvailableEl.textContent = '';
+                    return;
+                }
+                
+                const minutes = Math.floor(diff / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                nextCheckInAvailableEl.textContent = `Next check-in available in: ${minutes}m ${seconds}s`;
+                
+                setTimeout(update, 1000);
+            }
+            
+            update();
+        }
+
+        // Handle check-in
+        async function handleCheckIn() {
+            try {
+                checkinBtn.disabled = true;
+                errorMessageEl.textContent = '';
+                successMessageEl.textContent = 'Processing transaction...';
+                successMessageEl.style.display = 'block';
+                
+                // Kirim transaksi
+                const tx = await checkInContract.methods.checkIn().send({ from: userAddress });
+                
+                // Update UI setelah sukses
+                successMessageEl.textContent = 'Check-in successful! 1 token rewarded.';
+                loadContractData();
+                
+                setTimeout(() => {
+                    successMessageEl.style.display = 'none';
+                }, 5000);
+                
+            } catch (error) {
+                console.error("Error during check-in:", error);
+                errorMessageEl.textContent = 'Error: ' + (error.message || error);
+                checkinBtn.disabled = false;
+                successMessageEl.style.display = 'none';
+            }
+        }
+
+        function resetUI() {
+            tokensEarnedEl.textContent = '0';
+            currentStreakEl.textContent = '0 days';
+            lastCheckInTimeEl.textContent = 'Never';
+            checkinBtn.disabled = true;
+            nextCheckInAvailableEl.textContent = '';
+            walletAddressEl.textContent = '';
+            connectWalletBtn.textContent = 'Connect MetaMask';
+            connectWalletBtn.disabled = false;
+        }
+
+        connectWalletBtn.addEventListener('click', initWeb3);
+
+        window.addEventListener('load', async () => {
+            if (window.ethereum && window.ethereum.selectedAddress) {
+                await initWeb3();
+            }
+        });
+    </script>
+</body>
+
+</html>
