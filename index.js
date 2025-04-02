@@ -61,43 +61,36 @@ aitUnstakeButton.addEventListener('click', () => {
     aitUnstakeClicked = !aitUnstakeClicked;
 });
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Ambil elemen-elemen yang diperlukan
+document.addEventListener('DOMContentLoaded', function () {
     const checkInBtn = document.getElementById('checkIn');
     const contentCheckIn = document.getElementById('contentCheckIn');
     const closeCheckIn = document.getElementById('closeCheckIn');
-    
-    // Fungsi untuk menampilkan modal
+
     function showCheckInModal() {
         contentCheckIn.style.display = 'block';
     }
-    
-    // Fungsi untuk menyembunyikan modal
+
     function hideCheckInModal() {
         contentCheckIn.style.display = 'none';
     }
-    
-    // Event listener untuk tombol checkIn
+
     if (checkInBtn) {
         checkInBtn.addEventListener('click', showCheckInModal);
     }
-    
-    // Event listener untuk tombol closeCheckIn
+
     if (closeCheckIn) {
         closeCheckIn.addEventListener('click', hideCheckInModal);
     }
-    
-    // Event listener untuk klik di luar area modal
-    contentCheckIn.addEventListener('click', function(e) {
-        // Jika yang diklik adalah background (div contentCheckIn sendiri, bukan child-nya)
+
+    contentCheckIn.addEventListener('click', function (e) {
         if (e.target === contentCheckIn) {
             hideCheckInModal();
         }
     });
-    
-    // Pastikan modal awalnya tersembunyi
+
     hideCheckInModal();
 });
+
 
 
 const nativeStakingContract = '0x124526079cA384E2A2E78Cc03bF4d475f6b93173'; // Native Staking Contract
@@ -1281,679 +1274,679 @@ const claimAitContractABI = [
 ];
 
 const contractConfig = {
-    checkInContractAddress: "0x8007d797600bac46a850C0D59B94aCF44458813B", // Alamat kontrak DailyCheckIn
-    tokenContractAddress: "0x66eDf774AF0a06E973B771aD2a25fD604b48F886",  // Alamat kontrak token ERC20
+    checkInContractAddress: "0xB812C9dbB5652527cb9520eBe3C8e113A475A213", // Alamat kontrak DailyCheckIn
+    tokenContractAddress: "0x66eDf774AF0a06E973B771aD2a25fD604b48F886",  // Points Leaf pLeaf
     checkInABI: [
-{
-"inputs": [
-    {
-        "internalType": "address",
-        "name": "_tokenAddress",
-        "type": "address"
-    }
-],
-"stateMutability": "nonpayable",
-"type": "constructor"
-},
-{
-"anonymous": false,
-"inputs": [
-    {
-        "indexed": true,
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-    },
-    {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "timestamp",
-        "type": "uint256"
-    },
-    {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "rewardAmount",
-        "type": "uint256"
-    },
-    {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "currentStreak",
-        "type": "uint256"
-    }
-],
-"name": "CheckedIn",
-"type": "event"
-},
-{
-"inputs": [],
-"name": "checkIn",
-"outputs": [],
-"stateMutability": "nonpayable",
-"type": "function"
-},
-{
-"inputs": [
-    {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-    }
-],
-"name": "fundContract",
-"outputs": [],
-"stateMutability": "nonpayable",
-"type": "function"
-},
-{
-"anonymous": false,
-"inputs": [
-    {
-        "indexed": true,
-        "internalType": "address",
-        "name": "previousOwner",
-        "type": "address"
-    },
-    {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-    }
-],
-"name": "OwnershipTransferred",
-"type": "event"
-},
-{
-"inputs": [],
-"name": "renounceOwnership",
-"outputs": [],
-"stateMutability": "nonpayable",
-"type": "function"
-},
-{
-"inputs": [
-    {
-        "internalType": "address",
-        "name": "_tokenAddress",
-        "type": "address"
-    }
-],
-"name": "setTokenAddress",
-"outputs": [],
-"stateMutability": "nonpayable",
-"type": "function"
-},
-{
-"anonymous": false,
-"inputs": [
-    {
-        "indexed": false,
-        "internalType": "address",
-        "name": "newTokenAddress",
-        "type": "address"
-    }
-],
-"name": "TokenAddressUpdated",
-"type": "event"
-},
-{
-"anonymous": false,
-"inputs": [
-    {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-    }
-],
-"name": "TokensWithdrawn",
-"type": "event"
-},
-{
-"inputs": [
-    {
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-    }
-],
-"name": "transferOwnership",
-"outputs": [],
-"stateMutability": "nonpayable",
-"type": "function"
-},
-{
-"inputs": [],
-"name": "withdrawTokens",
-"outputs": [],
-"stateMutability": "nonpayable",
-"type": "function"
-},
-{
-"inputs": [
-    {
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-    }
-],
-"name": "canCheckIn",
-"outputs": [
-    {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-    }
-],
-"stateMutability": "view",
-"type": "function"
-},
-{
-"inputs": [],
-"name": "CHECK_IN_INTERVAL",
-"outputs": [
-    {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-    }
-],
-"stateMutability": "view",
-"type": "function"
-},
-{
-"inputs": [
-    {
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-    }
-],
-"name": "getUserCheckInCount",
-"outputs": [
-    {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-    }
-],
-"stateMutability": "view",
-"type": "function"
-},
-{
-"inputs": [
-    {
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-    }
-],
-"name": "getUserStats",
-"outputs": [
-    {
-        "internalType": "uint256",
-        "name": "currentStreak",
-        "type": "uint256"
-    },
-    {
-        "internalType": "uint256",
-        "name": "longestStreak",
-        "type": "uint256"
-    },
-    {
-        "internalType": "uint256",
-        "name": "totalCheckInsForUser",
-        "type": "uint256"
-    },
-    {
-        "internalType": "uint256",
-        "name": "lastCheckInTime",
-        "type": "uint256"
-    },
-    {
-        "internalType": "uint256",
-        "name": "totalTokensEarned",
-        "type": "uint256"
-    },
-    {
-        "internalType": "bool",
-        "name": "canUserCheckIn",
-        "type": "bool"
-    }
-],
-"stateMutability": "view",
-"type": "function"
-},
-{
-"inputs": [],
-"name": "owner",
-"outputs": [
-    {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-    }
-],
-"stateMutability": "view",
-"type": "function"
-},
-{
-"inputs": [],
-"name": "rewardToken",
-"outputs": [
-    {
-        "internalType": "contract IERC20",
-        "name": "",
-        "type": "address"
-    }
-],
-"stateMutability": "view",
-"type": "function"
-},
-{
-"inputs": [
-    {
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-    }
-],
-"name": "timeUntilNextCheckIn",
-"outputs": [
-    {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-    }
-],
-"stateMutability": "view",
-"type": "function"
-},
-{
-"inputs": [],
-"name": "TOKEN_REWARD",
-"outputs": [
-    {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-    }
-],
-"stateMutability": "view",
-"type": "function"
-},
-{
-"inputs": [],
-"name": "totalCheckIns",
-"outputs": [
-    {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-    }
-],
-"stateMutability": "view",
-"type": "function"
-},
-{
-"inputs": [],
-"name": "totalUsers",
-"outputs": [
-    {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-    }
-],
-"stateMutability": "view",
-"type": "function"
-},
-{
-"inputs": [
-    {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-    }
-],
-"name": "userStats",
-"outputs": [
-    {
-        "internalType": "uint256",
-        "name": "currentStreak",
-        "type": "uint256"
-    },
-    {
-        "internalType": "uint256",
-        "name": "longestStreak",
-        "type": "uint256"
-    },
-    {
-        "internalType": "uint256",
-        "name": "totalCheckIns",
-        "type": "uint256"
-    },
-    {
-        "internalType": "uint256",
-        "name": "lastCheckInTime",
-        "type": "uint256"
-    },
-    {
-        "internalType": "uint256",
-        "name": "totalTokensEarned",
-        "type": "uint256"
-    }
-],
-"stateMutability": "view",
-"type": "function"
-}
-],
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "_tokenAddress",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "constructor"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "user",
+                    "type": "address"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "timestamp",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "rewardAmount",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "currentStreak",
+                    "type": "uint256"
+                }
+            ],
+            "name": "CheckedIn",
+            "type": "event"
+        },
+        {
+            "inputs": [],
+            "name": "checkIn",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "amount",
+                    "type": "uint256"
+                }
+            ],
+            "name": "fundContract",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "previousOwner",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "newOwner",
+                    "type": "address"
+                }
+            ],
+            "name": "OwnershipTransferred",
+            "type": "event"
+        },
+        {
+            "inputs": [],
+            "name": "renounceOwnership",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "_tokenAddress",
+                    "type": "address"
+                }
+            ],
+            "name": "setTokenAddress",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "newTokenAddress",
+                    "type": "address"
+                }
+            ],
+            "name": "TokenAddressUpdated",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "amount",
+                    "type": "uint256"
+                }
+            ],
+            "name": "TokensWithdrawn",
+            "type": "event"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "newOwner",
+                    "type": "address"
+                }
+            ],
+            "name": "transferOwnership",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "withdrawTokens",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "user",
+                    "type": "address"
+                }
+            ],
+            "name": "canCheckIn",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "CHECK_IN_INTERVAL",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "user",
+                    "type": "address"
+                }
+            ],
+            "name": "getUserCheckInCount",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "user",
+                    "type": "address"
+                }
+            ],
+            "name": "getUserStats",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "currentStreak",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "longestStreak",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "totalCheckInsForUser",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "lastCheckInTime",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "totalTokensEarned",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "bool",
+                    "name": "canUserCheckIn",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "owner",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "rewardToken",
+            "outputs": [
+                {
+                    "internalType": "contract IERC20",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "user",
+                    "type": "address"
+                }
+            ],
+            "name": "timeUntilNextCheckIn",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "TOKEN_REWARD",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "totalCheckIns",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "totalUsers",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "userStats",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "currentStreak",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "longestStreak",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "totalCheckIns",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "lastCheckInTime",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "totalTokensEarned",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        }
+    ],
     tokenABI: [
-{
-"inputs": [],
-"stateMutability": "nonpayable",
-"type": "constructor"
-},
-{
-"anonymous": false,
-"inputs": [
-    {
-        "indexed": true,
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-    },
-    {
-        "indexed": true,
-        "internalType": "address",
-        "name": "spender",
-        "type": "address"
-    },
-    {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "value",
-        "type": "uint256"
-    }
-],
-"name": "Approval",
-"type": "event"
-},
-{
-"inputs": [
-    {
-        "internalType": "address",
-        "name": "_spender",
-        "type": "address"
-    },
-    {
-        "internalType": "uint256",
-        "name": "_value",
-        "type": "uint256"
-    }
-],
-"name": "approve",
-"outputs": [
-    {
-        "internalType": "bool",
-        "name": "success",
-        "type": "bool"
-    }
-],
-"stateMutability": "nonpayable",
-"type": "function"
-},
-{
-"inputs": [
-    {
-        "internalType": "uint256",
-        "name": "_value",
-        "type": "uint256"
-    }
-],
-"name": "burn",
-"outputs": [
-    {
-        "internalType": "bool",
-        "name": "success",
-        "type": "bool"
-    }
-],
-"stateMutability": "nonpayable",
-"type": "function"
-},
-{
-"anonymous": false,
-"inputs": [
-    {
-        "indexed": true,
-        "internalType": "address",
-        "name": "from",
-        "type": "address"
-    },
-    {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "value",
-        "type": "uint256"
-    }
-],
-"name": "Burn",
-"type": "event"
-},
-{
-"inputs": [
-    {
-        "internalType": "address",
-        "name": "_to",
-        "type": "address"
-    },
-    {
-        "internalType": "uint256",
-        "name": "_value",
-        "type": "uint256"
-    }
-],
-"name": "mint",
-"outputs": [
-    {
-        "internalType": "bool",
-        "name": "success",
-        "type": "bool"
-    }
-],
-"stateMutability": "nonpayable",
-"type": "function"
-},
-{
-"inputs": [
-    {
-        "internalType": "address",
-        "name": "_to",
-        "type": "address"
-    },
-    {
-        "internalType": "uint256",
-        "name": "_value",
-        "type": "uint256"
-    }
-],
-"name": "transfer",
-"outputs": [
-    {
-        "internalType": "bool",
-        "name": "success",
-        "type": "bool"
-    }
-],
-"stateMutability": "nonpayable",
-"type": "function"
-},
-{
-"anonymous": false,
-"inputs": [
-    {
-        "indexed": true,
-        "internalType": "address",
-        "name": "from",
-        "type": "address"
-    },
-    {
-        "indexed": true,
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
-    },
-    {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "value",
-        "type": "uint256"
-    }
-],
-"name": "Transfer",
-"type": "event"
-},
-{
-"inputs": [
-    {
-        "internalType": "address",
-        "name": "_from",
-        "type": "address"
-    },
-    {
-        "internalType": "address",
-        "name": "_to",
-        "type": "address"
-    },
-    {
-        "internalType": "uint256",
-        "name": "_value",
-        "type": "uint256"
-    }
-],
-"name": "transferFrom",
-"outputs": [
-    {
-        "internalType": "bool",
-        "name": "success",
-        "type": "bool"
-    }
-],
-"stateMutability": "nonpayable",
-"type": "function"
-},
-{
-"inputs": [
-    {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-    },
-    {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-    }
-],
-"name": "allowance",
-"outputs": [
-    {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-    }
-],
-"stateMutability": "view",
-"type": "function"
-},
-{
-"inputs": [
-    {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-    }
-],
-"name": "balanceOf",
-"outputs": [
-    {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-    }
-],
-"stateMutability": "view",
-"type": "function"
-},
-{
-"inputs": [],
-"name": "decimals",
-"outputs": [
-    {
-        "internalType": "uint8",
-        "name": "",
-        "type": "uint8"
-    }
-],
-"stateMutability": "view",
-"type": "function"
-},
-{
-"inputs": [],
-"name": "name",
-"outputs": [
-    {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-    }
-],
-"stateMutability": "view",
-"type": "function"
-},
-{
-"inputs": [],
-"name": "owner",
-"outputs": [
-    {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-    }
-],
-"stateMutability": "view",
-"type": "function"
-},
-{
-"inputs": [],
-"name": "symbol",
-"outputs": [
-    {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-    }
-],
-"stateMutability": "view",
-"type": "function"
-},
-{
-"inputs": [],
-"name": "totalSupply",
-"outputs": [
-    {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-    }
-],
-"stateMutability": "view",
-"type": "function"
-}
-]
+        {
+            "inputs": [],
+            "stateMutability": "nonpayable",
+            "type": "constructor"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "owner",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "spender",
+                    "type": "address"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "value",
+                    "type": "uint256"
+                }
+            ],
+            "name": "Approval",
+            "type": "event"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "_spender",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_value",
+                    "type": "uint256"
+                }
+            ],
+            "name": "approve",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "success",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "_value",
+                    "type": "uint256"
+                }
+            ],
+            "name": "burn",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "success",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "from",
+                    "type": "address"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "value",
+                    "type": "uint256"
+                }
+            ],
+            "name": "Burn",
+            "type": "event"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "_to",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_value",
+                    "type": "uint256"
+                }
+            ],
+            "name": "mint",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "success",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "_to",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_value",
+                    "type": "uint256"
+                }
+            ],
+            "name": "transfer",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "success",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "from",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "to",
+                    "type": "address"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "value",
+                    "type": "uint256"
+                }
+            ],
+            "name": "Transfer",
+            "type": "event"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "_from",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "_to",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_value",
+                    "type": "uint256"
+                }
+            ],
+            "name": "transferFrom",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "success",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "allowance",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "balanceOf",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "decimals",
+            "outputs": [
+                {
+                    "internalType": "uint8",
+                    "name": "",
+                    "type": "uint8"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "name",
+            "outputs": [
+                {
+                    "internalType": "string",
+                    "name": "",
+                    "type": "string"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "owner",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "symbol",
+            "outputs": [
+                {
+                    "internalType": "string",
+                    "name": "",
+                    "type": "string"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "totalSupply",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        }
+    ]
 };
 
 let web3;
@@ -2044,7 +2037,7 @@ async function init() {
             aitUpdateRewardAmount();
             updateTotalTokenStaking();
             initContracts();
-            await getAccount();        
+            await getAccount();
             setupEventListeners();
         } catch (error) {
             console.error('Failed to connect to MetaMask:', error);
@@ -2072,7 +2065,7 @@ function initContracts() {
         contractConfig.checkInABI,
         contractConfig.checkInContractAddress
     );
-    
+
     tokenContract = new web3.eth.Contract(
         contractConfig.tokenABI,
         contractConfig.tokenContractAddress
@@ -3177,23 +3170,23 @@ async function loadContractData() {
         const stats = await checkInContract.methods.getUserStats(userAddress).call();
         const tokensEarned = await tokenContract.methods.balanceOf(userAddress).call();
         const canCheckIn = await checkInContract.methods.canCheckIn(userAddress).call();
-        
+
         tokensEarnedEl.textContent = web3.utils.fromWei(tokensEarned, 'ether');
         currentStreakEl.textContent = `${stats.currentStreak} day${stats.currentStreak != 1 ? 's' : ''}`;
-        
+
         if (stats.lastCheckInTime > 0) {
             const lastCheckInDate = new Date(stats.lastCheckInTime * 1000);
             lastCheckInTimeEl.textContent = lastCheckInDate.toLocaleString();
         } else {
             lastCheckInTimeEl.textContent = 'Never';
         }
-        
+
         checkinBtn.disabled = !canCheckIn;
-        
+
         if (!canCheckIn && stats.lastCheckInTime > 0) {
             updateCountdown(stats.lastCheckInTime);
         }
-        
+
         errorMessageEl.textContent = '';
     } catch (error) {
         console.error("Error loading contract data:", error);
@@ -3202,27 +3195,27 @@ async function loadContractData() {
 }
 
 function updateCountdown(lastCheckInTime) {
-    const lastCheckIn = new Date(lastCheckInTime * 1000);
-    const nextCheckIn = new Date(lastCheckIn.getTime() + 2 * 60 * 1000); // 2 menit
-    
+    const lastCheckIn = new Date(lastCheckInTime.mul(1000).toNumber());
+    const nextCheckIn = lastCheckIn + 24 * 60 * 60 * 1000;
+
     function update() {
-        const now = new Date();
+        const now = new Date().getTime();
         const diff = nextCheckIn - now;
-        
+
         if (diff <= 0) {
             checkinBtn.disabled = false;
             nextCheckInAvailableEl.textContent = '';
             return;
         }
-        
-        const minutes = Math.floor(diff / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        
-        nextCheckInAvailableEl.textContent = `Next check-in available in: ${minutes}m ${seconds}s`;
-        
+
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+        nextCheckInAvailableEl.textContent = `Next check-in available in: ${hours}h ${minutes}m`;
+
         setTimeout(update, 1000);
     }
-    
+
     update();
 }
 
@@ -3232,16 +3225,16 @@ async function handleCheckIn() {
         errorMessageEl.textContent = '';
         successMessageEl.textContent = 'Processing transaction...';
         successMessageEl.style.display = 'block';
-        
+
         const tx = await checkInContract.methods.checkIn().send({ from: userAddress });
-        
+
         successMessageEl.textContent = 'Check-in successful!';
         loadContractData();
-        
+
         setTimeout(() => {
             successMessageEl.style.display = 'none';
         }, 5000);
-        
+
     } catch (error) {
         console.error("Error during check-in:", error);
         errorMessageEl.textContent = 'Error: ' + (error.message || error);
@@ -3250,46 +3243,46 @@ async function handleCheckIn() {
     }
 }
 
-        async function getAccount() {
-            const accounts = await web3.eth.getAccounts();
-            if (accounts.length > 0) {
-                userAddress = accounts[0];
-                walletAddressEl.textContent = `Connected: ${userAddress.substring(0, 6)}...${userAddress.substring(38)}`;
-                connectWalletBtn.textContent = 'Connected';
-                connectWalletBtn.disabled = true;
-                
-                loadContractData();
-            }
-        }
+async function getAccount() {
+    const accounts = await web3.eth.getAccounts();
+    if (accounts.length > 0) {
+        userAddress = accounts[0];
+        walletAddressEl.textContent = `Connected: ${userAddress.substring(0, 6)}...${userAddress.substring(38)}`;
+        connectWalletBtn.textContent = 'Connected';
+        connectWalletBtn.disabled = true;
 
-        function setupEventListeners() {
-            window.ethereum.on('accountsChanged', (accounts) => {
-                if (accounts.length > 0) {
-                    userAddress = accounts[0];
-                    walletAddressEl.textContent = `Connected: ${userAddress.substring(0, 6)}...${userAddress.substring(38)}`;
-                    loadContractData();
-                } else {
-                    resetUI();
-                }
-            });
-            
-            window.ethereum.on('chainChanged', () => {
-                window.location.reload();
-            });
-            
-            checkinBtn.addEventListener('click', handleCheckIn);
-        }
+        loadContractData();
+    }
+}
 
-        function resetUI() {
-            tokensEarnedEl.textContent = '0';
-            currentStreakEl.textContent = '0 days';
-            lastCheckInTimeEl.textContent = 'Never';
-            checkinBtn.disabled = true;
-            nextCheckInAvailableEl.textContent = '';
-            walletAddressEl.textContent = '';
-            connectWalletBtn.textContent = 'Connect MetaMask';
-            connectWalletBtn.disabled = false;
+function setupEventListeners() {
+    window.ethereum.on('accountsChanged', (accounts) => {
+        if (accounts.length > 0) {
+            userAddress = accounts[0];
+            walletAddressEl.textContent = `Connected: ${userAddress.substring(0, 6)}...${userAddress.substring(38)}`;
+            loadContractData();
+        } else {
+            resetUI();
         }
+    });
+
+    window.ethereum.on('chainChanged', () => {
+        window.location.reload();
+    });
+
+    checkinBtn.addEventListener('click', handleCheckIn);
+}
+
+function resetUI() {
+    tokensEarnedEl.textContent = '0';
+    currentStreakEl.textContent = '0 days';
+    lastCheckInTimeEl.textContent = 'Never';
+    checkinBtn.disabled = true;
+    nextCheckInAvailableEl.textContent = '';
+    walletAddressEl.textContent = '';
+    connectWalletBtn.textContent = 'Connect MetaMask';
+    connectWalletBtn.disabled = false;
+}
 
 window.addEventListener('load', async () => {
     if (window.ethereum) {
