@@ -3195,11 +3195,11 @@ async function loadContractData() {
 }
 
 function updateCountdown(lastCheckInTime) {
-    const lastCheckIn = new Date(lastCheckInTime.mul(1000).toNumber());
-    const nextCheckIn = lastCheckIn + 24 * 60 * 60 * 1000;
+    const lastCheckIn = new Date(lastCheckInTime * 1000);
+    const nextCheckIn = (lastCheckIn.getTime() + 24 * 60 * 60 * 1000);
 
     function update() {
-        const now = new Date().getTime();
+        const now = new Date();
         const diff = nextCheckIn - now;
 
         if (diff <= 0) {
@@ -3210,8 +3210,9 @@ function updateCountdown(lastCheckInTime) {
 
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-        nextCheckInAvailableEl.textContent = `Next check-in available in: ${hours}h ${minutes}m`;
+        nextCheckInAvailableEl.textContent = `Next check-in available in: ${hours}h ${minutes}m ${seconds}s`;
 
         setTimeout(update, 1000);
     }
