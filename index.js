@@ -1253,7 +1253,44 @@ async function init() {
         console.log('MetaMask is installed!');
 
         try {
-            accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+            const chainId = await ethereum.request({ method: 'eth_chainId' });
+            const TEA_SEPOLIA_CHAIN_ID = '0x27ea'; // 10218 hexadecimal
+            
+            if (chainId !== TEA_SEPOLIA_CHAIN_ID) {
+                try {
+                    await ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: TEA_SEPOLIA_CHAIN_ID }],
+                    });
+                } catch (switchError) {
+                    if (switchError.code === 4902) {
+                        try {
+                            await ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: TEA_SEPOLIA_CHAIN_ID,
+                                    chainName: 'TEA-Sepolia',
+                                    nativeCurrency: {
+                                        name: 'TEA',
+                                        symbol: 'TEA',
+                                        decimals: 18
+                                    },
+                                    rpcUrls: ['https://tea-sepolia.g.alchemy.com/public'],
+                                    blockExplorerUrls: []
+                                }],
+                            });
+                        } catch (addError) {
+                            console.error('Failed to add TEA-Sepolia network:', addError);
+                            return;
+                        }
+                    } else {
+                        console.error('Failed to switch to TEA-Sepolia network:', switchError);
+                        return;
+                    }
+                }
+            }
+
+            const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
             const account = accounts[0];
             console.log('Connected to MetaMask');
             console.log('Current account:', account);
