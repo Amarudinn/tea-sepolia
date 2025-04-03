@@ -4060,18 +4060,60 @@ async function initializeWeb3() {
 	HRL_STAKING_CONTRACT = new web3.eth.Contract(HRL_STAKING_ABI, HRL_STAKING_ADDRESS);
 }
 
+// async function updateAccountBalance() {
+// 	const balanceElement = document.getElementById('balance');
+// 	const balance = await LEAF_TOKEN_CONTRACT.methods.balanceOf(accounts[0]).call();
+// 	const formattedBalance = (balance / 10 ** 18).toFixed(0);
+// 	balanceElement.textContent = formattedBalance;
+// }
+
 async function updateAccountBalance() {
-	const balanceElement = document.getElementById('balance');
-	const balance = await LEAF_TOKEN_CONTRACT.methods.balanceOf(accounts[0]).call();
-	const formattedBalance = (balance / 10 ** 18).toFixed(0);
-	balanceElement.textContent = formattedBalance;
+    const balanceElement = document.getElementById('balance');
+    const balance = await LEAF_TOKEN_CONTRACT.methods.balanceOf(accounts[0]).call();
+    const balanceInLEAF = balance / 10 ** 18;
+    
+    let formattedBalance;
+    if (balanceInLEAF === 0) {
+        formattedBalance = "0";
+    } else if (balanceInLEAF < 0.000001) {
+        formattedBalance = balanceInLEAF.toExponential(6);
+    } else if (balanceInLEAF < 1) {
+        formattedBalance = balanceInLEAF.toFixed(6);
+    } else if (balanceInLEAF < 1000) {
+        formattedBalance = balanceInLEAF.toFixed(4).replace(/\.?0+$/, '');
+    } else {
+        formattedBalance = balanceInLEAF.toFixed(0);
+    }
+    
+    balanceElement.textContent = formattedBalance;
 }
 
+// async function duaUpdateAccountBalance() {
+// 	const balanceElement = document.getElementById('balanceDua');
+// 	const balance = await DAUN_TOKEN_CONTRACT.methods.balanceOf(accounts[0]).call();
+// 	const formattedBalance = (balance / 10 ** 18).toFixed(0);
+// 	balanceElement.textContent = formattedBalance;
+// }
+
 async function duaUpdateAccountBalance() {
-	const balanceElement = document.getElementById('balanceDua');
-	const balance = await DAUN_TOKEN_CONTRACT.methods.balanceOf(accounts[0]).call();
-	const formattedBalance = (balance / 10 ** 18).toFixed(0);
-	balanceElement.textContent = formattedBalance;
+    const balanceElement = document.getElementById('balanceDua');
+    const balance = await DAUN_TOKEN_CONTRACT.methods.balanceOf(accounts[0]).call();
+    const balanceInDAUN = balance / 10 ** 18;
+    
+    let formattedBalance;
+    if (balanceInDAUN === 0) {
+        formattedBalance = "0";
+    } else if (balanceInDAUN < 0.000001) {
+        formattedBalance = balanceInDAUN.toExponential(6);
+    } else if (balanceInDAUN < 1) {
+        formattedBalance = balanceInDAUN.toFixed(6);
+    } else if (balanceInDAUN < 1000) {
+        formattedBalance = balanceInDAUN.toFixed(4).replace(/\.?0+$/, '');
+    } else {
+        formattedBalance = balanceInDAUN.toFixed(0);
+    }
+    
+    balanceElement.textContent = formattedBalance;
 }
 
 // async function tigaUpdateAccountBalance() {
