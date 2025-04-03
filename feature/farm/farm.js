@@ -4074,11 +4074,32 @@ async function duaUpdateAccountBalance() {
 	balanceElement.textContent = formattedBalance;
 }
 
+// async function tigaUpdateAccountBalance() {
+// 	const balanceElement = document.getElementById('balanceTiga');
+// 	const balance = await HRL_TOKEN_CONTRACT.methods.balanceOf(accounts[0]).call();
+// 	const formattedBalance = (balance / 10 ** 18).toFixed(0);
+// 	balanceElement.textContent = formattedBalance;
+// }
+
 async function tigaUpdateAccountBalance() {
-	const balanceElement = document.getElementById('balanceTiga');
-	const balance = await HRL_TOKEN_CONTRACT.methods.balanceOf(accounts[0]).call();
-	const formattedBalance = (balance / 10 ** 18).toFixed(0);
-	balanceElement.textContent = formattedBalance;
+    const balanceElement = document.getElementById('balanceTiga');
+    const balance = await HRL_TOKEN_CONTRACT.methods.balanceOf(accounts[0]).call();
+    const balanceInHRL = balance / 10 ** 18;
+    
+    let formattedBalance;
+    if (balanceInHRL === 0) {
+        formattedBalance = "0";
+    } else if (balanceInHRL < 0.000001) {
+        formattedBalance = balanceInHRL.toExponential(6);
+    } else if (balanceInHRL < 1) {
+        formattedBalance = balanceInHRL.toFixed(6);
+    } else if (balanceInHRL < 1000) {
+        formattedBalance = balanceInHRL.toFixed(4).replace(/\.?0+$/, '');
+    } else {
+        formattedBalance = balanceInHRL.toFixed(0);
+    }
+    
+    balanceElement.textContent = formattedBalance;
 }
 
 function setMaxStakeAmount() {
