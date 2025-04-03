@@ -4038,6 +4038,18 @@ function updateConnectButton(account) {
 	connectBtn.textContent = `${account.substring(0, 5)}...${account.substring(account.length - 5)}`;
 }
 
+function initContracts() {
+    checkInContract = new web3.eth.Contract(
+        contractConfig.checkInABI,
+        contractConfig.checkInContractAddress
+    );
+
+    tokenContract = new web3.eth.Contract(
+        contractConfig.tokenABI,
+        contractConfig.tokenContractAddress
+    );
+}
+
 async function initializeWeb3() {
 	web3 = new Web3(window.ethereum);
 	LEAF_TOKEN_CONTRACT = new web3.eth.Contract(LEAF_TOKEN_ABI, LEAF_LP_TOKEN);
