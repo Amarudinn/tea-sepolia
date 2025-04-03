@@ -57,10 +57,53 @@
                             class="block py-2 px-3 rounded-sm bg-transparent text-slate-300 hover:bg-gray-700/80 md:py-1.5 md:px-4">Sport
                             Betting</a>
                     </li>
+                    <li>
+                        <div id="checkIn"
+                            class="bg-green-400 flex justify-center text-slate-900 text-[16px] hover:bg-green-600 hover:text-slate-300 px-2 py-1.5 rounded-md cursor-pointer">
+                            Check-in</div>
+                    </li>
                 </ul>
             </div>
         </div>
     </nav>
+
+    <div id="contentCheckIn" class="w-full h-full absolute bg-black/35 z-50" style="display: none;">
+        <div class="fixed inset-0 flex items-center justify-center px-4">
+            <div class="w-full max-w-md mx-auto py-3 px-10 rounded-md bg-slate-800/95 shadow-md relative">
+                <div id="closeCheckIn"
+                    class="absolute w-8 h-8 -right-2 -top-2 flex justify-center items-center bg-slate-900 p-2 rounded-full cursor-pointer">
+                    <i class="fa-solid fa-xmark text-red-500 text-[20px]"></i>
+                </div>
+                <div class="wallet-section" style="display: none;">
+                    <button id="connectWallet" class="connect-btn">Connect Wallet</button>
+                    <div id="walletAddress" style="margin-top: 10px; font-size: 12px;"></div>
+                </div>
+                <h1 class="text-[20px] text-center mb-4 text-slate-300">Daily Check-in</h1>
+                <div class="stat-item">
+                    <span class="text-slate-200">Points :</span>
+                    <span class="text-slate-200" id="tokensEarned">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="text-slate-200">Streak :</span>
+                    <span class="text-slate-200" id="currentStreak">0 days</span>
+                </div>
+                <div class="stat-item">
+                    <span class="text-slate-200">Last Check-in :</span>
+                    <span class="text-slate-200" id="lastCheckInTime">Never</span>
+                </div>
+                <button id="checkinBtn"
+                    class="py-1.5 w-full mt-4 mb-2 bg-green-400 text-slate-900 hover:bg-green-600 hover:text-slate-300 rounded-md cursor-pointer"
+                    style="display: none;" disabled>CHECK IN</button>
+                <button id="checkInConnectWallet"
+                    class="py-1.5 w-full mt-4 mb-2 bg-green-400 text-slate-900 hover:bg-green-600 hover:text-slate-300 rounded-md cursor-pointer"
+                    style="display: block;" onclick="init()">Connect Wallet</button>
+                <div class="countdown text-slate-200 text-center" id="nextCheckInAvailable"></div>
+                <div class="text-slate-200 text-center" style="display: none;" id="successMessage">Check-in successful!
+                </div>
+                <div class="error-message" id="errorMessage"></div>
+            </div>
+        </div>
+    </div>
 
     <div class="md:flex md:w-1/4 md:mx-auto">
         <div class="text-slate-300 ml-4 mt-10 md:mt-20 mb-4 flex-row justify-center items-center">

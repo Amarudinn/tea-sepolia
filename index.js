@@ -2016,7 +2016,7 @@ async function init() {
             console.log('Connected to MetaMask');
             console.log('Current account:', account);
 
-            document.getElementById("connectWallet").style.display = 'none';
+            document.getElementById("nativeConnectWallet").style.display = 'none';
             document.getElementById("aitConnectWallet").style.display = 'none';
             document.getElementById("checkInConnectWallet").style.display = 'none';
             checkinBtn.style.display = 'block';
