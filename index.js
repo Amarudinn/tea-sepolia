@@ -1954,7 +1954,7 @@ let nativeContract;
 let aitContract;
 let aitStaking;
 let claimContract;
-let accounts;
+let accounts = [];
 let checkInContract;
 let tokenContract;
 let userAddress;
@@ -1969,52 +1969,56 @@ const nextCheckInAvailableEl = document.getElementById('nextCheckInAvailable');
 const successMessageEl = document.getElementById('successMessage');
 const errorMessageEl = document.getElementById('errorMessage');
 
+async function switchOrAddChain(chainId) {
+    try {
+        await ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId }],
+        });
+    } catch (switchError) {
+        if (switchError.code === 4902) {
+            try {
+                await ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [{
+                        chainId,
+                        chainName: 'TEA-Sepolia',
+                        nativeCurrency: {
+                            name: 'TEA',
+                            symbol: 'TEA',
+                            decimals: 18
+                        },
+                        rpcUrls: ['https://tea-sepolia.g.alchemy.com/public'],
+                        blockExplorerUrls: []
+                    }],
+                });
+            } catch (addError) {
+                console.error('Failed to add TEA-Sepolia network:', addError);
+                throw addError;
+            }
+        } else {
+            console.error('Failed to switch to TEA-Sepolia network:', switchError);
+            throw switchError;
+        }
+    }
+}
+
 async function init() {
     if (typeof window.ethereum !== 'undefined') {
         console.log('MetaMask is installed!');
 
         try {
             const chainId = await ethereum.request({ method: 'eth_chainId' });
-            const TEA_SEPOLIA_CHAIN_ID = '0x27ea'; // 10218 hexadecimal
+            const TEA_SEPOLIA_CHAIN_ID = '0x27ea';
 
             if (chainId !== TEA_SEPOLIA_CHAIN_ID) {
-                try {
-                    await ethereum.request({
-                        method: 'wallet_switchEthereumChain',
-                        params: [{ chainId: TEA_SEPOLIA_CHAIN_ID }],
-                    });
-                } catch (switchError) {
-                    if (switchError.code === 4902) {
-                        try {
-                            await ethereum.request({
-                                method: 'wallet_addEthereumChain',
-                                params: [{
-                                    chainId: TEA_SEPOLIA_CHAIN_ID,
-                                    chainName: 'TEA-Sepolia',
-                                    nativeCurrency: {
-                                        name: 'TEA',
-                                        symbol: 'TEA',
-                                        decimals: 18
-                                    },
-                                    rpcUrls: ['https://tea-sepolia.g.alchemy.com/public'],
-                                    blockExplorerUrls: []
-                                }],
-                            });
-                        } catch (addError) {
-                            console.error('Failed to add TEA-Sepolia network:', addError);
-                            return;
-                        }
-                    } else {
-                        console.error('Failed to switch to TEA-Sepolia network:', switchError);
-                        return;
-                    }
-                }
+                await switchOrAddChain(TEA_SEPOLIA_CHAIN_ID);
             }
 
-            const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-            const account = accounts[0];
-            console.log('Connected to MetaMask');
-            console.log('Current account:', account);
+            accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+            if (accounts.length === 0) {
+                throw new Error('No accounts found');
+            }
 
             document.getElementById("nativeConnectWallet").style.display = 'none';
             document.getElementById("aitConnectWallet").style.display = 'none';
@@ -2025,25 +2029,38 @@ async function init() {
             document.getElementById("tvlnative").style.display = 'block';
             document.getElementById("tvlait").style.display = 'block';
 
-            updateConnectButton(account);
-            initializeWeb3();
-            updateAccountBalance();
-            updateStakedAmount();
-            updateRewardAmount();
-            updateTotalStaking();
-            updateTotalStakers();
-            aitUpdateAccountBalance();
-            aitUpdateStakedAmount();
-            aitUpdateRewardAmount();
-            updateTotalTokenStaking();
-            initContracts();
-            await getAccount();
-            setupEventListeners();
+            await initializeWeb3();
+            
+            await updateConnectButton(accounts[0]);
+            await updateAllData();
+
         } catch (error) {
-            console.error('Failed to connect to MetaMask:', error);
+            console.error('Initialization failed:', error);
         }
     } else {
         console.error('MetaMask is not installed!');
+    }
+}
+
+async function updateAllData() {
+    try {
+        await Promise.all([
+            initializeWeb3(),
+            updateAccountBalance(),
+            updateStakedAmount(),
+            updateRewardAmount(),
+            updateTotalStaking(),
+            updateTotalStakers(),
+            aitUpdateAccountBalance(),
+            aitUpdateStakedAmount(),
+            aitUpdateRewardAmount(),
+            updateTotalTokenStaking(),
+            initContracts(),
+            await getAccount(),
+            setupEventListeners()
+        ]);
+    } catch (error) {
+        console.error('Failed to update some data:', error);
     }
 }
 
@@ -3287,6 +3304,24 @@ function resetUI() {
 
 window.addEventListener('load', async () => {
     if (window.ethereum) {
-        init();
+        ethereum.on('chainChanged', (chainId) => {
+            window.location.reload();
+        });
+
+        ethereum.on('accountsChanged', (newAccounts) => {
+            accounts = newAccounts;
+            if (accounts.length > 0) {
+                updateConnectButton(accounts[0]);
+                updateAllData();
+            } else {
+                window.location.reload();
+            }
+        });
+
+        try {
+            await init();
+        } catch (error) {
+            console.error('Initialization error:', error);
+        }
     }
 });
