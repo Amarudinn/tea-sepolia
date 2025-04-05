@@ -2834,7 +2834,7 @@ async function aitClaimReward() {
             showConfirmButton: false
         });
 
-        const claimTx = await nativeContract.methods
+        const claimTx = await aitStaking.methods
             .claimReward()
             .send({ from: accounts[0] });
 
