@@ -2938,7 +2938,7 @@ async function aitUpdateStakedAmount() {
 async function aitUpdateRewardAmount() {
     const aitRewardAmountElement = document.getElementById('aitRewardAmount');
     const aitRewardAmount = await aitStaking.methods.getPendingReward(accounts[0]).call();
-    const aitFormattedRewardAmount = (aitRewardAmount / 10 ** 18).toFixed(4);
+    const aitFormattedRewardAmount = (aitRewardAmount / 10 ** 18).toFixed(3);
     aitRewardAmountElement.textContent = aitFormattedRewardAmount;
 }
 
