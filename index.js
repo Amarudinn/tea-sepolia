@@ -5,32 +5,38 @@ menuButton.addEventListener('click', () => {
     menu.classList.toggle('hidden');
 });
 
+const nativeTab = document.getElementById('nativeTab');
+const aitTab = document.getElementById('aitTab');
+const switchNativeTab = document.getElementById('switchNativeTab');
+const switchAitTab = document.getElementById('switchAitTab');
+
+nativeTab.addEventListener('click', () => {
+	nativeTab.classList.add('border-b-2', 'border-green-400');
+	aitTab.classList.remove('border-b-2', 'border-green-400');
+	switchNativeTab.classList.remove('hidden');
+	switchAitTab.classList.add('hidden');
+});
+
+aitTab.addEventListener('click', () => {
+	aitTab.classList.add('border-b-2', 'border-green-400');
+	nativeTab.classList.remove('border-b-2', 'border-green-400');
+	switchAitTab.classList.remove('hidden');
+	switchNativeTab.classList.add('hidden');
+});
+
 const stakeButton = document.getElementById('stakeButton');
 const unstakeButton = document.getElementById('unstakeButton');
 const stakeSection = document.getElementById('stakeSection');
 const unstakeSection = document.getElementById('unstakeSection');
 
-let stakeClicked = false;
-let unstakeClicked = false;
-
 stakeButton.addEventListener('click', () => {
-    if (stakeClicked) {
-        stakeSection.classList.add('hidden');
-    } else {
-        stakeSection.classList.remove('hidden');
-        unstakeSection.classList.add('hidden');
-    }
-    stakeClicked = !stakeClicked;
+    unstakeSection.classList.add('hidden');
+    stakeSection.classList.toggle('hidden');
 });
 
 unstakeButton.addEventListener('click', () => {
-    if (unstakeClicked) {
-        unstakeSection.classList.add('hidden');
-    } else {
-        unstakeSection.classList.remove('hidden');
-        stakeSection.classList.add('hidden');
-    }
-    unstakeClicked = !unstakeClicked;
+    stakeSection.classList.add('hidden');
+    unstakeSection.classList.toggle('hidden');
 });
 
 const aitStakeButton = document.getElementById('aitStakeButton');
@@ -38,27 +44,14 @@ const aitUnstakeButton = document.getElementById('aitUnstakeButton');
 const aitStakeSection = document.getElementById('aitStakeSection');
 const aitUnstakeSection = document.getElementById('aitUnstakeSection');
 
-let aitStakeClicked = false;
-let aitUnstakeClicked = false;
-
 aitStakeButton.addEventListener('click', () => {
-    if (aitStakeClicked) {
-        aitStakeSection.classList.add('hidden');
-    } else {
-        aitStakeSection.classList.remove('hidden');
-        aitUnstakeSection.classList.add('hidden');
-    }
-    aitStakeClicked = !aitStakeClicked;
+    aitUnstakeSection.classList.add('hidden');
+    aitStakeSection.classList.toggle('hidden');
 });
 
 aitUnstakeButton.addEventListener('click', () => {
-    if (aitUnstakeClicked) {
-        aitUnstakeSection.classList.add('hidden');
-    } else {
-        aitUnstakeSection.classList.remove('hidden');
-        aitStakeSection.classList.add('hidden');
-    }
-    aitUnstakeClicked = !aitUnstakeClicked;
+    aitStakeSection.classList.add('hidden');
+    aitUnstakeSection.classList.toggle('hidden');
 });
 
 document.addEventListener('DOMContentLoaded', function () {

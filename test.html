@@ -1,1023 +1,365 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Check-in dengan Smart Contract</title>
+    <link href="/src/output.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Autour+One&family=Delius&display=swap" rel="stylesheet">
+    <title>STAKE</title>
     <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-            color: #333;
+        .tx-link {
+            word-break: break-all;
+            font-size: 16px;
+            color: #3498db;
+            text-decoration: none;
         }
 
-        .container {
-            background-color: white;
-            border-radius: 10px;
-            padding: 25px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
-            color: #2c3e50;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .stats-container {
-            margin-bottom: 30px;
-        }
-
-        .stat-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .stat-label {
-            font-weight: bold;
-            color: #7f8c8d;
-        }
-
-        .stat-value {
-            color: #2c3e50;
-        }
-
-        .checkin-btn {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 100%;
-            transition: background-color 0.3s;
-        }
-
-        .checkin-btn:hover {
-            background-color: #2980b9;
-        }
-
-        .checkin-btn:disabled {
-            background-color: #95a5a6;
-            cursor: not-allowed;
-        }
-
-        .countdown {
-            text-align: center;
-            margin-top: 10px;
-            font-size: 14px;
-            color: #7f8c8d;
-        }
-
-        .success-message {
-            color: #27ae60;
-            text-align: center;
-            margin-top: 15px;
-            font-weight: bold;
-            display: none;
-        }
-
-        .error-message {
-            color: #e74c3c;
-            text-align: center;
-            margin-top: 15px;
-        }
-
-        .wallet-section {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .connect-btn {
-            background-color: #2ecc71;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
+        .tx-link:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 
-<body>
-    <div class="container">
-        <div class="wallet-section">
-            <button id="connectWallet" class="connect-btn">Connect Wallet</button>
-            <div id="walletAddress" style="margin-top: 10px; font-size: 12px;"></div>
-        </div>
+<body class="bg-slate-900">
 
-        <h1>Daily Check-in</h1>
-
-        <div class="stats-container">
-            <div class="stat-item">
-                <span class="stat-label">Tokens Earned:</span>
-                <span class="stat-value" id="tokensEarned">0</span>
+    <nav class="backdrop-blur-lg bg-white/5 border-gray-200">
+        <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-2">
+            <a href="#" class="flex items-center space-x-3 rtl:space-x-reverse">
+                <span class="text-[16px] text-slate-300 flex justify-center items-center"
+                    style="font-family: 'Autour One', system-ui;"><i
+                        class="fa-solid fa-leaf text-[20px] mr-2 text-green-400"></i>Tea Leaf</span>
+            </a>
+            <div class="flex justify-between items-center md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
+                <div
+                    class="flex items-center py-1 px-2 bg-green-400 text-slate-900 hover:bg-green-600 hover:text-slate-300 rounded-md cursor-pointer">
+                    <img src="/images/metamask.png" alt="images" class="w-5 h-5 mr-1">
+                    <button id="connectButton" class="cursor-pointer" onclick="init()">Connect Wallet</button>
+                </div>
+                <button data-collapse-toggle="navbar-cta" type="button"
+                    class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+                    aria-controls="navbar-cta" aria-expanded="false">
+                    <span class="sr-only">Open main menu</span>
+                    <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 17 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M1 1h15M1 7h15M1 13h15" />
+                    </svg>
+                </button>
             </div>
-            <div class="stat-item">
-                <span class="stat-label">Current Streak:</span>
-                <span class="stat-value" id="currentStreak">0 days</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Last Check-in:</span>
-                <span class="stat-value" id="lastCheckInTime">Never</span>
+            <div class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1" id="navbar-cta">
+                <ul
+                    class="flex flex-col font-medium p-4 md:p-0 mt-4 border border-gray-500 rounded-lg md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0">
+                    <li>
+                        <a href="#"
+                            class="block py-2 px-3 rounded-sm bg-gray-700/80 text-slate-300 hover:bg-gray-700/50 hover:text-slate-300/80 md:bg-gray-700/80 md:text-slate-300 md:hover:bg-gray-700/50 md:hover:text-slate-300/80 md:py-1.5 md:px-4"
+                            aria-current="page">Stake</a>
+                    </li>
+                    <li>
+                        <a href="/feature/farm/farm.html"
+                            class="block py-2 px-3 rounded-sm bg-transparent text-slate-300 hover:bg-gray-700/80 md:py-1.5 md:px-4">Farm</a>
+                    </li>
+                    <li>
+                        <a href="#"
+                            class="block py-2 px-3 rounded-sm bg-transparent text-slate-300 hover:bg-gray-700/80 md:py-1.5 md:px-4">Bridge</a>
+                    </li>
+                    <li>
+                        <a href="#"
+                            class="block py-2 px-3 rounded-sm bg-transparent text-slate-300 hover:bg-gray-700/80 md:py-1.5 md:px-4">Sport
+                            Betting</a>
+                    </li>
+                    <li>
+                        <div id="checkIn"
+                            class="bg-green-400 flex justify-center text-slate-900 text-[16px] hover:bg-green-600 hover:text-slate-300 px-2 py-1.5 rounded-md cursor-pointer">
+                            Check-in</div>
+                    </li>
+                </ul>
             </div>
         </div>
+    </nav>
 
-        <button id="checkinBtn" class="checkin-btn" disabled>CHECK IN NOW</button>
-        <div class="countdown" id="nextCheckInAvailable"></div>
-        <div class="success-message" id="successMessage">Check-in successful! 1 token has been added to your account.
+    <div id="contentCheckIn" class="w-full h-full absolute bg-black/35 z-50" style="display: none;">
+        <div class="fixed inset-0 flex items-center justify-center px-4">
+            <div class="w-full max-w-md mx-auto py-3 px-10 rounded-md bg-slate-800/95 shadow-md relative">
+                <div id="closeCheckIn"
+                    class="absolute w-8 h-8 -right-2 -top-2 flex justify-center items-center bg-slate-900 p-2 rounded-full cursor-pointer">
+                    <i class="fa-solid fa-xmark text-red-500 text-[20px]"></i>
+                </div>
+                <div class="wallet-section" style="display: none;">
+                    <button id="connectWallet" class="connect-btn">Connect Wallet</button>
+                    <div id="walletAddress" style="margin-top: 10px; font-size: 12px;"></div>
+                </div>
+                <h1 class="text-[20px] text-center mb-4 text-slate-300">Daily Check-in</h1>
+                <div class="stat-item">
+                    <span class="text-slate-200">Points :</span>
+                    <span class="text-slate-200" id="tokensEarned">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="text-slate-200">Streak :</span>
+                    <span class="text-slate-200" id="currentStreak">0 days</span>
+                </div>
+                <div class="stat-item">
+                    <span class="text-slate-200">Last Check-in :</span>
+                    <span class="text-slate-200" id="lastCheckInTime">Never</span>
+                </div>
+                <button id="checkinBtn"
+                    class="py-1.5 w-full mt-4 mb-2 bg-green-400 text-slate-900 hover:bg-green-600 hover:text-slate-300 rounded-md cursor-pointer"
+                    style="display: none;" disabled>CHECK IN</button>
+                <button id="checkInConnectWallet"
+                    class="py-1.5 w-full mt-4 mb-2 bg-green-400 text-slate-900 hover:bg-green-600 hover:text-slate-300 rounded-md cursor-pointer"
+                    style="display: block;" onclick="init()">Connect Wallet</button>
+                <div class="countdown text-slate-200 text-center" id="nextCheckInAvailable"></div>
+                <div class="text-slate-200 text-center" style="display: none;" id="successMessage">Check-in successful!
+                </div>
+                <div class="error-message" id="errorMessage"></div>
+            </div>
         </div>
-        <div class="error-message" id="errorMessage"></div>
     </div>
 
-    <!-- Gunakan ethers.js untuk berinteraksi dengan smart contract -->
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
-    <script>
-        // Konfigurasi Kontrak (Ganti dengan alamat kontrak Anda)
-        const contractConfig = {
-            checkInContractAddress: "0x8007d797600bac46a850C0D59B94aCF44458813B", // Alamat kontrak DailyCheckIn
-            tokenContractAddress: "0x66eDf774AF0a06E973B771aD2a25fD604b48F886",  // Alamat kontrak token ERC20
-            checkInABI: [
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_tokenAddress",
-				"type": "address"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "timestamp",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "rewardAmount",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "currentStreak",
-				"type": "uint256"
-			}
-		],
-		"name": "CheckedIn",
-		"type": "event"
-	},
-	{
-		"inputs": [],
-		"name": "checkIn",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "fundContract",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "previousOwner",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
-			}
-		],
-		"name": "OwnershipTransferred",
-		"type": "event"
-	},
-	{
-		"inputs": [],
-		"name": "renounceOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_tokenAddress",
-				"type": "address"
-			}
-		],
-		"name": "setTokenAddress",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": false,
-				"internalType": "address",
-				"name": "newTokenAddress",
-				"type": "address"
-			}
-		],
-		"name": "TokenAddressUpdated",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "TokensWithdrawn",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
-			}
-		],
-		"name": "transferOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "withdrawTokens",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			}
-		],
-		"name": "canCheckIn",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "CHECK_IN_INTERVAL",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			}
-		],
-		"name": "getUserCheckInCount",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			}
-		],
-		"name": "getUserStats",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "currentStreak",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "longestStreak",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "totalCheckInsForUser",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "lastCheckInTime",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "totalTokensEarned",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bool",
-				"name": "canUserCheckIn",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "owner",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "rewardToken",
-		"outputs": [
-			{
-				"internalType": "contract IERC20",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			}
-		],
-		"name": "timeUntilNextCheckIn",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "TOKEN_REWARD",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "totalCheckIns",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "totalUsers",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "userStats",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "currentStreak",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "longestStreak",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "totalCheckIns",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "lastCheckInTime",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "totalTokensEarned",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	}
-],
-            tokenABI: [
-	{
-		"inputs": [],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "spender",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "value",
-				"type": "uint256"
-			}
-		],
-		"name": "Approval",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_spender",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_value",
-				"type": "uint256"
-			}
-		],
-		"name": "approve",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "success",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_value",
-				"type": "uint256"
-			}
-		],
-		"name": "burn",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "success",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "from",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "value",
-				"type": "uint256"
-			}
-		],
-		"name": "Burn",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_to",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_value",
-				"type": "uint256"
-			}
-		],
-		"name": "mint",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "success",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_to",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_value",
-				"type": "uint256"
-			}
-		],
-		"name": "transfer",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "success",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "from",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "value",
-				"type": "uint256"
-			}
-		],
-		"name": "Transfer",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_from",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "_to",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_value",
-				"type": "uint256"
-			}
-		],
-		"name": "transferFrom",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "success",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "allowance",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "balanceOf",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "decimals",
-		"outputs": [
-			{
-				"internalType": "uint8",
-				"name": "",
-				"type": "uint8"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "name",
-		"outputs": [
-			{
-				"internalType": "string",
-				"name": "",
-				"type": "string"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "owner",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "symbol",
-		"outputs": [
-			{
-				"internalType": "string",
-				"name": "",
-				"type": "string"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "totalSupply",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	}
-]
-        };
+    <div class="md:flex md:w-1/2 md:mx-auto">
+        <div class="text-slate-300 ml-4 mt-10 md:mt-20 mb-4 md:mb-0 flex-row justify-center items-center">
+            <h3 class="text-[24px] tracking-[1px] font-semibold" style="font-family: 'Delius', 'cursive';">Leaf Stake
+            </h3>
+            <h3 class="text-[16px]" style="font-family: 'Delius', 'cursive';">Enjoy the rewards of staking with high APY
+            </h3>
+        </div>
+    </div>
 
-        // Variabel global
-        let web3;
-        let checkInContract;
-        let tokenContract;
-        let userAddress;
+    <div class="flex justify-center items-center gap-4">
+        <a href="https://faucet-sepolia.tea.xyz/" target="_blank"
+            class="bg-green-400 flex justify-center text-slate-900 text-[16px] hover:bg-green-600 hover:text-slate-300 px-2 py-1.5 rounded-md cursor-pointer">TEA
+            Faucet</a>
+        <button id="claimButton"
+            class="bg-green-400 flex justify-center text-slate-900 text-[16px] hover:bg-green-600 hover:text-slate-300 px-2 py-1.5 rounded-md cursor-pointer">LEAF
+            Faucet</button>
+    </div>
 
-        // DOM elements
-        const connectWalletBtn = document.getElementById('connectWallet');
-        const walletAddressEl = document.getElementById('walletAddress');
-        const tokensEarnedEl = document.getElementById('tokensEarned');
-        const currentStreakEl = document.getElementById('currentStreak');
-        const lastCheckInTimeEl = document.getElementById('lastCheckInTime');
-        const checkinBtn = document.getElementById('checkinBtn');
-        const nextCheckInAvailableEl = document.getElementById('nextCheckInAvailable');
-        const successMessageEl = document.getElementById('successMessage');
-        const errorMessageEl = document.getElementById('errorMessage');
+    <div class="md:flex md:w-1/2 md:mx-auto md:mt-6">
+        <div class="container w-full h-full flex justify-center items-center">
+            <div
+                class="mt-4 md:mt-0 mx-2 px-4 pt-1 pb-4 w-full flex-row justify-center items-center backdrop-blur-lg bg-white/5 rounded-lg shadow-md">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-[#DDDDDD] text-[20px]" style="font-family: 'Delius', 'cursive';">Native Staking</h3>
+                    <h3 id="tvlnative" class="text-[#DDDDDD] text-[16px]" style="display: none;">TVL <span
+                            id="totalStaking">0</span> TEA</h3>
+                </div>
+                <div class="flex gap-1 pl-1 text-[10px] my-3">
+                    <div class="py-0.5 px-1 bg-slate-900 text-sky-400">NO LOCK</div>
+                    <div class="py-0.5 px-1 bg-slate-900 text-yellow-400">HIGH APY</div>
+                    <div class="py-0.5 px-1 bg-slate-900">🔥</div>
+                </div>
+                <div
+                    class="border-l-3 border-green-400 px-3 py-1 mb-3 backdrop-blur-lg bg-white/5 shadow-lg rounded-lg">
+                    <div class="text-[#DDDDDD]">Balance <i
+                            class="fa-solid fa-wallet text-[12px] text-green-400 bg-slate-800 p-1.5 rounded-md"></i>
+                    </div>
+                    <div class="text-[#DDDDDD]">
+                        <span id="balance">0</span> <span>TEA</span>
+                    </div>
+                </div>
+                <div
+                    class="border-l-3 border-green-400 px-3 py-1 mb-3 backdrop-blur-lg bg-white/5 shadow-lg rounded-lg">
+                    <div class="text-[#DDDDDD]">APY <i
+                            class="fa-solid fa-fire-flame-curved text-[12px] text-green-400 bg-slate-800 p-1.5 rounded-md"></i>
+                    </div>
+                    <div class="text-[#DDDDDD]">
+                        <span>14%</span>
+                    </div>
+                </div>
+                <div
+                    class="border-l-3 border-green-400 px-3 py-1 mb-3 backdrop-blur-lg bg-white/5 shadow-lg rounded-lg">
+                    <div class="text-[#DDDDDD]">Staked <i
+                            class="fa-solid fa-lock text-[12px] text-green-400 bg-slate-800 p-1.5 rounded-md"></i></div>
+                    <div class="text-[#DDDDDD]">
+                        <span id="stakedAmount">0</span> TEA
+                    </div>
+                </div>
+                <div
+                    class="border-l-3 border-green-400 px-3 py-1 mb-4 backdrop-blur-lg bg-white/5 shadow-lg rounded-lg">
+                    <div class="text-[#DDDDDD]">Rewards <i
+                            class="fa-solid fa-gift text-[12px] text-green-400 bg-slate-800 p-1.5 rounded-md"></i></div>
+                    <div class="text-[#DDDDDD]">
+                        <span id="rewardAmount">0</span> TEA
+                    </div>
+                </div>
+                <div id="stakeUnstake" style="display: none;">
+                    <div class="grid grid-cols-3 gap-2">
+                        <button
+                            class="py-1.5 bg-green-400 text-slate-900 hover:bg-green-600 hover:text-slate-300 rounded-md"
+                            id="stakeButton"><i class="fa-solid fa-coins text-[13px]"></i> Stake</button>
+                        <button
+                            class="py-1.5 bg-green-400 text-slate-900 hover:bg-green-600 hover:text-slate-300 rounded-md"
+                            id="unstakeButton"><i class="fa-solid fa-arrow-right text-[13px]"></i> Unstake</button>
+                        <button
+                            class="py-1.5 bg-green-400 text-slate-900 hover:bg-green-600 hover:text-slate-300 rounded-md"
+                            onclick="claimReward()"><i class="fa-solid fa-gift text-[13px]"></i> Claim</button>
+                    </div>
+                </div>
+                <button id="nativeConnectWallet"
+                    class="py-1.5 w-full bg-green-400 text-slate-900 hover:bg-green-600 hover:text-slate-300 rounded-md cursor-pointer"
+                    style="display: block;" onclick="init()">Connect Wallet</button>
+                <div class="border-l-3 border-green-400 px-3 pt-1 pb-3 my-4 backdrop-blur-lg bg-white/5 shadow-lg rounded-lg hidden"
+                    id="stakeSection">
+                    <h3 class="text-[#DDDDDD]">Stake: </h3>
+                    <div class="flex items-center justify-center">
+                        <div class="overflow-hidden flex w-full border-1 border-[#DDDDDD] rounded-md">
+                            <input id="stakeAmount" type="text"
+                                class="w-full text-[#DDDDDD] ml-1 bg-transparent outline-none"
+                                placeholder="Enter amount">
+                            <button
+                                class="bg-green-400 text-[14px] text-slate-900 py-1.5 px-2 ml-2 hover:bg-green-600 hover:text-slate-300"
+                                id="maxStakeAmount" onclick="setMaxStakeAmount()">Max</button>
+                        </div>
+                        <button
+                            class="bg-green-400 text-slate-900 text-[16px] block hover:bg-green-600 hover:text-slate-300 px-2 py-1.5 ml-1 rounded-md"
+                            onclick="stake()">Stake</button>
+                    </div>
+                </div>
+                <div class="border-l-3 border-green-400 px-3 pt-1 pb-3 my-4 backdrop-blur-lg bg-white/5 shadow-lg rounded-lg hidden"
+                    id="unstakeSection">
+                    <h3 class="text-[#DDDDDD]">Unstake: </h3>
+                    <div class="flex items-center justify-center">
+                        <div class="overflow-hidden flex w-full border-1 border-[#DDDDDD] rounded-md">
+                            <input id="unstakeAmount" type="text"
+                                class="w-full text-[#DDDDDD] ml-1 bg-transparent outline-none"
+                                placeholder="Enter amount">
+                            <button
+                                class="bg-green-400 text-[14px] text-slate-900 py-1.5 px-2 ml-2 hover:bg-green-600 hover:text-slate-300"
+                                id="maxStakeAmount" onclick="setMaxUnstakeAmount()">Max</button>
+                        </div>
+                        <button
+                            class="bg-green-400 text-slate-900 text-[16px] block hover:bg-green-600 hover:text-slate-300 px-2 py-1.5 ml-1 rounded-md"
+                            onclick="unstakePartial()">Unstake</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        // Inisialisasi Web3
-        async function initWeb3() {
-            // Cek jika MetaMask terinstall
-            if (window.ethereum) {
-                try {
-                    // Request akses akun
-                    await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    
-                    // Buat instance Web3
-                    web3 = new Web3(window.ethereum);
-                    
-                    // Inisialisasi kontrak
-                    initContracts();
-                    
-                    // Dapatkan alamat pengguna
-                    await getAccount();
-                    
-                    // Set event listeners
-                    setupEventListeners();
-                    
-                } catch (error) {
-                    console.error("Error initializing Web3:", error);
-                    errorMessageEl.textContent = 'Error: ' + error.message;
-                }
-            } else {
-                errorMessageEl.textContent = 'Please install MetaMask to use this app!';
-                connectWalletBtn.disabled = true;
-            }
-        }
+        <div class="container w-full h-full flex justify-center items-center">
+            <div
+                class="mt-10 md:mt-0 mx-2 px-4 pt-1 pb-4 w-full flex-row justify-center items-center backdrop-blur-lg bg-white/5 rounded-lg shadow-md">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-[#DDDDDD] text-[20px]" style="font-family: 'Delius', 'cursive';">LEAF Staking</h3>
+                    <h3 id="tvlait" class="text-[#DDDDDD] text-[16px]" style="display: none;">TVL <span
+                            id="totalTokenStaking">0</span> LEAF</h3>
+                </div>
+                <div class="flex gap-1 pl-1 text-[10px] my-3">
+                    <div class="py-0.5 px-1 bg-slate-900 text-sky-400">NO LOCK</div>
+                    <div class="py-0.5 px-1 bg-slate-900 text-yellow-400">HIGH APY</div>
+                    <div class="py-0.5 px-1 bg-slate-900">🔥</div>
+                </div>
+                <div
+                    class="border-l-3 border-green-400 px-3 py-1 mb-3 backdrop-blur-lg bg-white/5 shadow-lg rounded-lg">
+                    <div class="text-[#DDDDDD]">Balance <i
+                            class="fa-solid fa-wallet text-[12px] text-green-400 bg-slate-800 p-1.5 rounded-md"></i>
+                    </div>
+                    <div class="text-[#DDDDDD]">
+                        <span id="aitbalance">0</span> <span>LEAF</span>
+                    </div>
+                </div>
+                <div
+                    class="border-l-3 border-green-400 px-3 py-1 mb-3 backdrop-blur-lg bg-white/5 shadow-lg rounded-lg">
+                    <div class="text-[#DDDDDD]">APY <i
+                            class="fa-solid fa-fire-flame-curved text-[12px] text-green-400 bg-slate-800 p-1.5 rounded-md"></i>
+                    </div>
+                    <div class="text-[#DDDDDD]">
+                        <span>6%</span>
+                    </div>
+                </div>
+                <div
+                    class="border-l-3 border-green-400 px-3 py-1 mb-3 backdrop-blur-lg bg-white/5 shadow-lg rounded-lg">
+                    <div class="text-[#DDDDDD]">Staked <i
+                            class="fa-solid fa-lock text-[12px] text-green-400 bg-slate-800 p-1.5 rounded-md"></i></div>
+                    <div class="text-[#DDDDDD]">
+                        <span id="aitStakedAmount">0</span> LEAF
+                    </div>
+                </div>
+                <div
+                    class="border-l-3 border-green-400 px-3 py-1 mb-4 backdrop-blur-lg bg-white/5 shadow-lg rounded-lg">
+                    <div class="text-[#DDDDDD]">Rewards <i
+                            class="fa-solid fa-gift text-[12px] text-green-400 bg-slate-800 p-1.5 rounded-md"></i></div>
+                    <div class="text-[#DDDDDD]">
+                        <span id="aitRewardAmount">0</span> TEA
+                    </div>
+                </div>
+                <div id="aitStakeUnstake" style="display: none;">
+                    <div class="grid grid-cols-3 gap-2">
+                        <button
+                            class="py-1.5 bg-green-400 text-slate-900 hover:bg-green-600 hover:text-slate-300 rounded-md"
+                            id="aitStakeButton"><i class="fa-solid fa-coins text-[13px]"></i> Stake</button>
+                        <button
+                            class="py-1.5 bg-green-400 text-slate-900 hover:bg-green-600 hover:text-slate-300 rounded-md"
+                            id="aitUnstakeButton"><i class="fa-solid fa-arrow-right text-[13px]"></i> Unstake</button>
+                        <button
+                            class="py-1.5 bg-green-400 text-slate-900 hover:bg-green-600 hover:text-slate-300 rounded-md"
+                            onclick="aitClaimReward()"><i class="fa-solid fa-gift text-[13px]"></i> Claim</button>
+                    </div>
+                </div>
+                <button id="aitConnectWallet"
+                    class="py-1.5 w-full bg-green-400 text-slate-900 hover:bg-green-600 hover:text-slate-300 rounded-md cursor-pointer"
+                    style="display: block;" onclick="init()">Connect Wallet</button>
+                <div class="border-l-3 border-green-400 px-3 pt-1 pb-3 my-4 backdrop-blur-lg bg-white/5 shadow-lg rounded-lg hidden"
+                    id="aitStakeSection">
+                    <h3 class="text-[#DDDDDD]">Stake: </h3>
+                    <div class="flex items-center justify-center">
+                        <div class="overflow-hidden flex w-full border-1 border-[#DDDDDD] rounded-md">
+                            <input id="aitStakeAmount" type="text"
+                                class="w-full text-[#DDDDDD] ml-1 bg-transparent outline-none"
+                                placeholder="Enter amount">
+                            <button
+                                class="bg-green-400 text-[14px] text-slate-900 py-1.5 px-2 ml-2 hover:bg-green-600 hover:text-slate-300"
+                                id="aitMaxStakeAmount" onclick="aitSetMaxStakeAmount()">Max</button>
+                        </div>
+                        <button
+                            class="bg-green-400 text-slate-900 text-[16px] block hover:bg-green-600 hover:text-slate-300 px-2 py-1.5 ml-1 rounded-md"
+                            onclick="aitStake()">Stake</button>
+                    </div>
+                </div>
+                <div class="border-l-3 border-green-400 px-3 pt-1 pb-3 my-4 backdrop-blur-lg bg-white/5 shadow-lg rounded-lg hidden"
+                    id="aitUnstakeSection">
+                    <h3 class="text-[#DDDDDD]">Unstake: </h3>
+                    <div class="flex items-center justify-center">
+                        <div class="overflow-hidden flex w-full border-1 border-[#DDDDDD] rounded-md">
+                            <input id="aitUnstakeAmount" type="text"
+                                class="w-full text-[#DDDDDD] ml-1 bg-transparent outline-none"
+                                placeholder="Enter amount">
+                            <button
+                                class="bg-green-400 text-[14px] text-slate-900 py-1.5 px-2 ml-2 hover:bg-green-600 hover:text-slate-300"
+                                id="aitMaxStakeAmount" onclick="aitSetMaxUnstakeAmount()">Max</button>
+                        </div>
+                        <button
+                            class="bg-green-400 text-slate-900 text-[16px] block hover:bg-green-600 hover:text-slate-300 px-2 py-1.5 ml-1 rounded-md"
+                            onclick="aitUnstakePartial()">Unstake</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        // Inisialisasi kontrak
-        function initContracts() {
-            checkInContract = new web3.eth.Contract(
-                contractConfig.checkInABI,
-                contractConfig.checkInContractAddress
-            );
-            
-            tokenContract = new web3.eth.Contract(
-                contractConfig.tokenABI,
-                contractConfig.tokenContractAddress
-            );
-        }
+    <div
+        class="flex justify-center items-center mt-16 mb-6 gap-2 text-[18px] text-slate-300 md:absolute md:bottom-0 md:left-1/2 md:transform md:-translate-x-1/2">
+        <a href="https://x.com/m_amarudinn2">
+            <div class="bg-white/5 shadow-lg w-8 h-8 flex justify-center items-center rounded-full"><i
+                    class="fa-brands fa-x-twitter"></i></div>
+        </a>
+        <a href="https://t.me/AirdropIntelligent">
+            <div class="bg-white/5 shadow-lg w-8 h-8 flex justify-center items-center rounded-full"><i
+                    class="fa-brands fa-telegram"></i></div>
+        </a>
+        <a href="#">
+            <div class="bg-white/5 shadow-lg w-8 h-8 flex justify-center items-center rounded-full"><i
+                    class="fa-brands fa-github"></i></div>
+        </a>
+    </div>
 
-        // Dapatkan akun pengguna
-        async function getAccount() {
-            const accounts = await web3.eth.getAccounts();
-            if (accounts.length > 0) {
-                userAddress = accounts[0];
-                walletAddressEl.textContent = `Connected: ${userAddress.substring(0, 6)}...${userAddress.substring(38)}`;
-                connectWalletBtn.textContent = 'Connected';
-                connectWalletBtn.disabled = true;
-                
-                // Muat data kontrak
-                loadContractData();
-            }
-        }
-
-        // Setup event listeners
-        function setupEventListeners() {
-            // Handle account changes
-            window.ethereum.on('accountsChanged', (accounts) => {
-                if (accounts.length > 0) {
-                    userAddress = accounts[0];
-                    walletAddressEl.textContent = `Connected: ${userAddress.substring(0, 6)}...${userAddress.substring(38)}`;
-                    loadContractData();
-                } else {
-                    resetUI();
-                }
-            });
-            
-            // Handle chain changes
-            window.ethereum.on('chainChanged', () => {
-                window.location.reload();
-            });
-            
-            // Tombol check-in
-            checkinBtn.addEventListener('click', handleCheckIn);
-        }
-
-        // Muat data dari kontrak
-        async function loadContractData() {
-            try {
-                // Dapatkan data dari kontrak
-                const stats = await checkInContract.methods.getUserStats(userAddress).call();
-                const tokensEarned = await tokenContract.methods.balanceOf(userAddress).call();
-                const canCheckIn = await checkInContract.methods.canCheckIn(userAddress).call();
-                
-                // Update UI
-                tokensEarnedEl.textContent = web3.utils.fromWei(tokensEarned, 'ether');
-                currentStreakEl.textContent = `${stats.currentStreak} day${stats.currentStreak != 1 ? 's' : ''}`;
-                
-                if (stats.lastCheckInTime > 0) {
-                    const lastCheckInDate = new Date(stats.lastCheckInTime * 1000);
-                    lastCheckInTimeEl.textContent = lastCheckInDate.toLocaleString();
-                } else {
-                    lastCheckInTimeEl.textContent = 'Never';
-                }
-                
-                checkinBtn.disabled = !canCheckIn;
-                
-                // Jika sudah check-in, tampilkan countdown
-                if (!canCheckIn && stats.lastCheckInTime > 0) {
-                    updateCountdown(stats.lastCheckInTime);
-                }
-                
-                errorMessageEl.textContent = '';
-            } catch (error) {
-                console.error("Error loading contract data:", error);
-                errorMessageEl.textContent = 'Error loading data: ' + error.message;
-            }
-        }
-
-        // Update countdown timer
-        function updateCountdown(lastCheckInTime) {
-            const lastCheckIn = new Date(lastCheckInTime * 1000);
-            const nextCheckIn = new Date(lastCheckIn.getTime() + 2 * 60 * 1000); // 2 menit
-            
-            function update() {
-                const now = new Date();
-                const diff = nextCheckIn - now;
-                
-                if (diff <= 0) {
-                    checkinBtn.disabled = false;
-                    nextCheckInAvailableEl.textContent = '';
-                    return;
-                }
-                
-                const minutes = Math.floor(diff / (1000 * 60));
-                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-                
-                nextCheckInAvailableEl.textContent = `Next check-in available in: ${minutes}m ${seconds}s`;
-                
-                setTimeout(update, 1000);
-            }
-            
-            update();
-        }
-
-        // Handle check-in
-        async function handleCheckIn() {
-            try {
-                checkinBtn.disabled = true;
-                errorMessageEl.textContent = '';
-                successMessageEl.textContent = 'Processing transaction...';
-                successMessageEl.style.display = 'block';
-                
-                // Kirim transaksi
-                const tx = await checkInContract.methods.checkIn().send({ from: userAddress });
-                
-                // Update UI setelah sukses
-                successMessageEl.textContent = 'Check-in successful! 1 token rewarded.';
-                loadContractData();
-                
-                setTimeout(() => {
-                    successMessageEl.style.display = 'none';
-                }, 5000);
-                
-            } catch (error) {
-                console.error("Error during check-in:", error);
-                errorMessageEl.textContent = 'Error: ' + (error.message || error);
-                checkinBtn.disabled = false;
-                successMessageEl.style.display = 'none';
-            }
-        }
-
-        function resetUI() {
-            tokensEarnedEl.textContent = '0';
-            currentStreakEl.textContent = '0 days';
-            lastCheckInTimeEl.textContent = 'Never';
-            checkinBtn.disabled = true;
-            nextCheckInAvailableEl.textContent = '';
-            walletAddressEl.textContent = '';
-            connectWalletBtn.textContent = 'Connect MetaMask';
-            connectWalletBtn.disabled = false;
-        }
-
-        connectWalletBtn.addEventListener('click', initWeb3);
-
-        window.addEventListener('load', async () => {
-            if (window.ethereum && window.ethereum.selectedAddress) {
-                await initWeb3();
-            }
-        });
-    </script>
+    <script src="index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 </body>
 
 </html>
