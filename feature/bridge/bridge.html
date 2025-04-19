@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swap Interface</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+
+<body class="bg-slate-900 p-4">
+    <div class="max-w-md mx-auto backdrop-blur-lg bg-white/5 rounded-xl shadow-md overflow-hidden p-6">
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex">
+                <button class="px-4 py-2 font-medium border-b-2 border-green-400 text-slate-200">Bridge</button>
+            </div>
+            <button id="connectWalletBtn"
+                class="px-4 py-2 bg-green-400 text-slate-800 rounded-lg text-sm hover:bg-green-500 cursor-pointer">
+                Connect Wallet
+            </button>
+        </div>
+
+        <div class="backdrop-blur-lg bg-white/5 rounded-lg p-4 mb-4 shadow-md">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-sm text-slate-200">From</span>
+                <span id="userAddress" class="text-[16px] text-slate-200 hidden"></span>
+            </div>
+
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex justify-center items-center">
+                    <span class="font-medium text-green-400">TEA</span>
+                    <div class="flex items-center py-1 px-2 rounded-md border border-slate-600 ml-3"><img src="/images/tea.png" alt="Erorr" class="w-5 h-5"><span
+                        class="text-[16px] text-slate-200 ml-2">TEA Sepolia</span>
+                </div>
+                </div>
+                <div class="text-right">
+                    <span id="ethBalance" class="text-sm text-slate-200">Balance: -</span>
+                </div>
+            </div>
+
+            <div class="border-2 border-gray-300 text-slate-200 flex justify-between rounded-lg p-2">
+                <input id="sellAmount" type="text" placeholder="0.0" class="w-full px-2 py-1 outline-none">
+                <div class="flex space-x-1">
+                    <button id="percent20"
+                        class="px-2 py-1 text-xs bg-green-400 text-slate-800 rounded hover:bg-green-500">20%</button>
+                    <button id="percent50"
+                        class="px-2 py-1 text-xs bg-green-400 text-slate-800 rounded hover:bg-green-500">50%</button>
+                    <button id="percentMax"
+                        class="px-2 py-1 text-xs bg-green-400 text-slate-800 rounded hover:bg-green-500">MAX</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="backdrop-blur-lg bg-white/5 rounded-lg p-4 mb-6 shadow-md">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-sm text-slate-200">To</span>
+                <span id="buyAddress" class="text-[16px] text-slate-200 hidden"></span>
+            </div>
+
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex justify-center items-center">
+                    <span class="font-medium text-green-400">tsTEA</span>
+                    <div class="flex items-center py-1 px-2 rounded-md border border-slate-600 ml-3"><img src="/images/eth.png" alt="Erorr" class="w-5 h-5"><span
+                            class="text-[16px] text-slate-200 ml-2">Sepolia</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-2 border-gray-300 bg-white/5 overflow-hidden rounded-lg p-2 text-slate-200">
+                <input id="buyAmount" type="text" placeholder="0.0" class="w-full px-2 py-1 outline-none" disabled>
+            </div>
+        </div>
+
+        <div class="backdrop-blur-lg bg-white/5 rounded-lg p-4 mb-6 shadow-md text-slate-200 text-[14px]">
+            <div class="flex justify-between">
+                <span>Estimation time</span>
+                <span>~ 5 Minutes</span>
+            </div>
+            <div class="flex justify-between">
+                <span>Fee</span>
+                <span>3%</span>
+            </div>
+            <div class="flex justify-between">
+                <span>Network cost</span>
+                <span>0.02 TEA</span>
+            </div>
+            <div class="flex justify-between">
+                <span>You will receive</span>
+                <span><span id="receiveAmount">0</span> tsTEA</span>
+            </div>
+        </div>
+
+        <button id="swapBtn"
+            class="w-full bg-green-400 text-slate-800 py-3 rounded-lg font-medium hover:bg-green-500 disabled:bg-slate-600 disabled:text-slate-200 cursor-pointer"
+            disabled>
+            Bridge TEA → tsTEA
+        </button>
+    </div>
+
+    <script>
+        let currentAccount = null;
+        let userEthBalance = 0;
+        const FEE_PERCENTAGE = 3; // 3% fee
+        const NETWORK_COST = 0.02; // Fixed network cost
+
+        const connectWalletBtn = document.getElementById('connectWalletBtn');
+        const userAddress = document.getElementById('userAddress');
+        const buyAddress = document.getElementById('buyAddress');
+        const swapBtn = document.getElementById('swapBtn');
+        const sellAmount = document.getElementById('sellAmount');
+        const buyAmount = document.getElementById('buyAmount');
+        const ethBalance = document.getElementById('ethBalance');
+        const percent20 = document.getElementById('percent20');
+        const percent50 = document.getElementById('percent50');
+        const percentMax = document.getElementById('percentMax');
+        const receiveAmount = document.getElementById('receiveAmount');
+
+        function calculateFinalAmount(amount) {
+            const afterFee = amount * (1 - FEE_PERCENTAGE/100);
+            const finalAmount = afterFee - NETWORK_COST;
+            return finalAmount > 0 ? finalAmount.toFixed(6) : '0';
+        }
+
+        function updateAmountDisplays(amount) {
+            if (!isNaN(amount)) {
+                const finalAmount = calculateFinalAmount(amount);
+                buyAmount.value = finalAmount;
+                receiveAmount.textContent = finalAmount;
+            } else {
+                buyAmount.value = '';
+                receiveAmount.textContent = '0';
+            }
+        }
+
+        async function getEthBalance(address) {
+            try {
+                const balance = await window.web3.eth.getBalance(address);
+                userEthBalance = parseFloat(window.web3.utils.fromWei(balance, 'ether'));
+                return userEthBalance.toFixed(6);
+            } catch (error) {
+                console.error("Error getting balance:", error);
+                return "-";
+            }
+        }
+
+        function setPercentage(percent) {
+            if (userEthBalance <= 0) return;
+
+            let amount;
+            if (percent === 100) {
+                amount = userEthBalance;
+            } else {
+                amount = (userEthBalance * percent / 100).toFixed(6);
+            }
+
+            sellAmount.value = amount;
+            updateAmountDisplays(parseFloat(amount));
+            swapBtn.disabled = false;
+        }
+
+        connectWalletBtn.addEventListener('click', async () => {
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                currentAccount = accounts[0];
+
+                const truncatedAddress = `${currentAccount.substring(0, 4)}...${currentAccount.substring(currentAccount.length - 4)}`;
+                userAddress.textContent = truncatedAddress;
+                buyAddress.textContent = truncatedAddress;
+
+                userAddress.classList.remove('hidden');
+                buyAddress.classList.remove('hidden');
+
+                connectWalletBtn.textContent = truncatedAddress;
+
+                const balance = await getEthBalance(currentAccount);
+                ethBalance.textContent = `Balance: ${balance} TEA`;
+
+            } catch (error) {
+                console.error("Error connecting to MetaMask:", error);
+            }
+        });
+
+        percent20.addEventListener('click', () => setPercentage(20));
+        percent50.addEventListener('click', () => setPercentage(50));
+        percentMax.addEventListener('click', () => setPercentage(100));
+
+        sellAmount.addEventListener('input', (e) => {
+            const amount = parseFloat(e.target.value);
+            updateAmountDisplays(amount);
+
+            const isValid = !isNaN(amount) && amount > 0 && amount <= userEthBalance;
+            swapBtn.disabled = !(e.target.value && !userAddress.classList.contains('hidden') && isValid);
+        });
+
+        swapBtn.addEventListener('click', async () => {
+            try {
+                if (!currentAccount) {
+                    alert('Please connect your wallet first');
+                    return;
+                }
+
+                const amount = parseFloat(sellAmount.value);
+                if (!amount || isNaN(amount) || amount <= 0 || amount > userEthBalance) {
+                    alert('Please enter a valid amount');
+                    return;
+                }
+
+                const amountInWei = window.web3.utils.toWei(amount.toString(), 'ether');
+                const finalAmount = calculateFinalAmount(amount);
+
+                const contractABI = [
+                    {
+                        "inputs": [],
+                        "name": "deposit",
+                        "outputs": [],
+                        "stateMutability": "payable",
+                        "type": "function"
+                    }
+                ];
+
+                const contractAddress = "0x82198AeD5e5b2a113b692b5ca470ef24272444e9";
+                const contract = new window.web3.eth.Contract(contractABI, contractAddress);
+
+                const confirmed = await Swal.fire({
+                    title: 'Confirm Bridge',
+                    html: `You are bridging <b>${amount} TEA</b><br>
+                           Fee 3%: ${amount} TEA - 3% = ${(amount * (1 - FEE_PERCENTAGE/100)).toFixed(5)}<br>
+                           Network cost 0.02 TEA: ${(amount * (1 - FEE_PERCENTAGE/100)).toFixed(5)} - 0.02 TEA<br><br>
+                           You will receive <b>${finalAmount} tsTEA</b> on Sepolia`,
+                    icon: 'info',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Confirm Bridge'
+                });
+
+                if (!confirmed.isConfirmed) return;
+
+                await contract.methods.deposit().send({
+                    from: currentAccount,
+                    value: amountInWei
+                });
+
+                await Swal.fire(
+                    'Success!',
+                    `Your ${amount} TEA has been bridged to ${finalAmount} tsTEA`,
+                    'success'
+                );
+
+                const newBalance = await getEthBalance(currentAccount);
+                ethBalance.textContent = `Balance: ${newBalance} TEA`;
+
+                sellAmount.value = '';
+                buyAmount.value = '';
+                receiveAmount.textContent = '0';
+                swapBtn.disabled = true;
+
+            } catch (error) {
+                console.error("Error during swap:", error);
+                Swal.fire(
+                    'Error!',
+                    'Transaction failed: ' + (error.message || error),
+                    'error'
+                );
+            }
+        });
+
+        if (typeof window.ethereum !== 'undefined') {
+            window.web3 = new Web3(window.ethereum);
+
+            window.ethereum.on('accountsChanged', async (accounts) => {
+                if (accounts.length === 0) {
+                    connectWalletBtn.textContent = 'Connect Wallet';
+                    userAddress.classList.add('hidden');
+                    buyAddress.classList.add('hidden');
+                    ethBalance.textContent = 'Balance: -';
+                    currentAccount = null;
+                    userEthBalance = 0;
+                    sellAmount.value = '';
+                    buyAmount.value = '';
+                    receiveAmount.textContent = '0';
+                    swapBtn.disabled = true;
+                } else {
+                    currentAccount = accounts[0];
+                    const truncatedAddress = `${currentAccount.substring(0, 4)}...${currentAccount.substring(currentAccount.length - 4)}`;
+                    userAddress.textContent = truncatedAddress;
+                    buyAddress.textContent = truncatedAddress;
+                    connectWalletBtn.textContent = truncatedAddress;
+                    const balance = await getEthBalance(currentAccount);
+                    ethBalance.textContent = `Balance: ${balance} TEA`;
+                }
+            });
+        }
+    </script>
+</body>
+</html>
