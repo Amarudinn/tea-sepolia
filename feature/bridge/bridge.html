@@ -10,67 +10,82 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
 </head>
 
-<body class="bg-slate-900 p-4">
-    <div class="max-w-md mx-auto backdrop-blur-lg bg-white/5 rounded-xl shadow-md overflow-hidden p-6">
+<body class="bg-slate-900">
+    <div class="max-w-md backdrop-blur-lg bg-white/5 rounded-xl shadow-md overflow-hidden p-4 md:px-6 mx-2">
         <div class="flex justify-between items-center mb-6">
             <div class="flex">
                 <button class="px-4 py-2 font-medium border-b-2 border-green-400 text-slate-200">Bridge</button>
             </div>
             <button id="connectWalletBtn"
-                class="px-4 py-2 bg-green-400 text-slate-800 rounded-lg text-sm hover:bg-green-500 cursor-pointer">
+                class="px-4 py-2 text-[16px] bg-green-400 text-slate-800 rounded-lg text-sm hover:bg-green-500 cursor-pointer">
                 Connect Wallet
             </button>
         </div>
 
-        <div class="backdrop-blur-lg bg-white/5 rounded-lg p-4 mb-4 shadow-md">
+        <div class="backdrop-blur-lg bg-white/5 rounded-lg p-4 shadow-md">
             <div class="flex justify-between items-center mb-2">
                 <span class="text-sm text-slate-200">From</span>
-                <span id="userAddress" class="text-[16px] text-slate-200 hidden"></span>
+
+                <div id="walletSatu" class="flex justify-center items-center hidden"><i
+                        class="fa-solid fa-wallet text-slate-200 pr-1"></i><span id="userAddress"
+                        class="text-[16px] text-slate-200 hidden"></span></div>
             </div>
 
-            <div class="flex justify-between items-center mb-4">
+            <div class="flex justify-between items-center mb-0.5">
                 <div class="flex justify-center items-center">
-                    <span class="font-medium text-green-400">TEA</span>
-                    <div class="flex items-center py-1 px-2 rounded-md border border-slate-600 ml-3"><img src="/images/tea.png" alt="Erorr" class="w-5 h-5"><span
-                        class="text-[16px] text-slate-200 ml-2">TEA Sepolia</span>
-                </div>
-                </div>
-                <div class="text-right">
-                    <span id="ethBalance" class="text-sm text-slate-200">Balance: -</span>
+                    <div class="rounded-md border border-slate-600 py-1 px-2"><span
+                            class="font-medium text-green-400">TEA</span></div>
+                    <i class="fa-solid fa-arrow-right text-slate-200 mx-1.5 text-[12px]"></i>
+                    <div class="flex items-center py-1 px-2 rounded-md border border-slate-600"><img
+                            src="/images/tea.png" alt="Erorr" class="w-5 h-5"><span
+                            class="text-[16px] text-slate-200 ml-2">TEA Sepolia</span>
+                    </div>
                 </div>
             </div>
+            <div class="text-right">
+                <span id="ethBalance" class="text-sm text-slate-200">Balance: -</span>
+            </div>
 
-            <div class="border-2 border-gray-300 text-slate-200 flex justify-between rounded-lg p-2">
+            <div class="border-2 border-gray-300 text-slate-200 flex justify-between rounded-lg md:p-2 p-1.5">
                 <input id="sellAmount" type="text" placeholder="0.0" class="w-full px-2 py-1 outline-none">
                 <div class="flex space-x-1">
                     <button id="percent20"
-                        class="px-2 py-1 text-xs bg-green-400 text-slate-800 rounded hover:bg-green-500">20%</button>
+                        class="md:px-2 md:py-1 px-1 py-0.5 text-xs bg-green-400 text-slate-800 rounded hover:bg-green-500">20%</button>
                     <button id="percent50"
-                        class="px-2 py-1 text-xs bg-green-400 text-slate-800 rounded hover:bg-green-500">50%</button>
+                        class="md:px-2 md:py-1 px-1 py-0.5 text-xs bg-green-400 text-slate-800 rounded hover:bg-green-500">50%</button>
                     <button id="percentMax"
-                        class="px-2 py-1 text-xs bg-green-400 text-slate-800 rounded hover:bg-green-500">MAX</button>
+                        class="md:px-2 md:py-1 px-1 py-0.5 text-xs bg-green-400 text-slate-800 rounded hover:bg-green-500">MAX</button>
                 </div>
             </div>
         </div>
 
+        <div class="flex justify-center items-center my-4"><i
+                class="fa-solid fa-arrow-down text-slate-200 text-[18px]"></i></div>
+
         <div class="backdrop-blur-lg bg-white/5 rounded-lg p-4 mb-6 shadow-md">
             <div class="flex justify-between items-center mb-2">
                 <span class="text-sm text-slate-200">To</span>
-                <span id="buyAddress" class="text-[16px] text-slate-200 hidden"></span>
+                <div id="walletDua" class="flex justify-center items-center hidden"><i
+                        class="fa-solid fa-wallet text-slate-200 pr-1"></i><span id="buyAddress"
+                        class="text-[16px] text-slate-200 hidden"></span></div>
             </div>
 
             <div class="flex justify-between items-center mb-4">
                 <div class="flex justify-center items-center">
-                    <span class="font-medium text-green-400">tsTEA</span>
-                    <div class="flex items-center py-1 px-2 rounded-md border border-slate-600 ml-3"><img src="/images/eth.png" alt="Erorr" class="w-5 h-5"><span
+                    <div class="rounded-md border border-slate-600 py-1 px-2"><span
+                            class="font-medium text-green-400">tsTEA</span></div>
+                    <i class="fa-solid fa-arrow-right text-slate-200 mx-1.5 text-[12px]"></i>
+                    <div class="flex items-center py-1 px-2 rounded-md border border-slate-600"><img
+                            src="/images/eth.png" alt="Erorr" class="w-5 h-5"><span
                             class="text-[16px] text-slate-200 ml-2">Sepolia</span>
                     </div>
                 </div>
             </div>
 
-            <div class="border-2 border-gray-300 bg-white/5 overflow-hidden rounded-lg p-2 text-slate-200">
+            <div class="border-2 border-gray-300 bg-white/5 overflow-hidden rounded-lg md:p-2 p-1.5 text-slate-200">
                 <input id="buyAmount" type="text" placeholder="0.0" class="w-full px-2 py-1 outline-none" disabled>
             </div>
         </div>
@@ -118,9 +133,11 @@
         const percent50 = document.getElementById('percent50');
         const percentMax = document.getElementById('percentMax');
         const receiveAmount = document.getElementById('receiveAmount');
+        const walletSatu = document.getElementById('walletSatu');
+        const walletDua = document.getElementById('walletDua');
 
         function calculateFinalAmount(amount) {
-            const afterFee = amount * (1 - FEE_PERCENTAGE/100);
+            const afterFee = amount * (1 - FEE_PERCENTAGE / 100);
             const finalAmount = afterFee - NETWORK_COST;
             return finalAmount > 0 ? finalAmount.toFixed(6) : '0';
         }
@@ -173,6 +190,8 @@
 
                 userAddress.classList.remove('hidden');
                 buyAddress.classList.remove('hidden');
+                walletSatu.classList.remove('hidden');
+                walletDua.classList.remove('hidden');
 
                 connectWalletBtn.textContent = truncatedAddress;
 
@@ -228,8 +247,8 @@
                 const confirmed = await Swal.fire({
                     title: 'Confirm Bridge',
                     html: `You are bridging <b>${amount} TEA</b><br>
-                           Fee 3%: ${amount} TEA - 3% = ${(amount * (1 - FEE_PERCENTAGE/100)).toFixed(5)}<br>
-                           Network cost 0.02 TEA: ${(amount * (1 - FEE_PERCENTAGE/100)).toFixed(5)} - 0.02 TEA<br><br>
+                           Fee 3%: ${amount} TEA - 3% = ${(amount * (1 - FEE_PERCENTAGE / 100)).toFixed(5)}<br>
+                           Network cost 0.02 TEA: ${(amount * (1 - FEE_PERCENTAGE / 100)).toFixed(5)} - 0.02 TEA<br><br>
                            You will receive <b>${finalAmount} tsTEA</b> on Sepolia`,
                     icon: 'info',
                     showCancelButton: true,
@@ -297,4 +316,5 @@
         }
     </script>
 </body>
+
 </html>
